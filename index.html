@@ -267,13 +267,90 @@ body{
   .navbar-inner{height:54px}
   .logo{font-size:1.05rem}
 }
-</style>
+
+/* ===== NAV BTN ===== */
+.nav-btn{
+  margin-left:auto;width:38px;height:38px;border:none;border-radius:10px;
+  background:var(--accent-light);color:var(--accent);font-size:1rem;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:all 0.2s;
+}
+.nav-btn:hover{background:var(--accent);color:#fff}
+
+/* ===== HISTORY PANEL ===== */
+.history-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,0.35);z-index:2000;
+  opacity:0;pointer-events:none;transition:opacity 0.3s;
+}
+.history-overlay.active{opacity:1;pointer-events:auto}
+.history-panel{
+  position:fixed;top:0;right:-400px;width:380px;max-width:90vw;
+  height:100vh;background:var(--surface);z-index:2001;
+  box-shadow:-8px 0 32px rgba(0,0,0,0.12);
+  display:flex;flex-direction:column;
+  transition:right 0.35s cubic-bezier(.4,0,.2,1);
+}
+.history-panel.active{right:0}
+@media(max-width:500px){.history-panel{width:100vw;max-width:100vw}}
+.history-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:1rem 1.2rem;border-bottom:1px solid var(--border);
+}
+.history-title{font-size:1rem;font-weight:600;display:flex;align-items:center;gap:0.5rem}
+.history-close{
+  width:32px;height:32px;border:none;border-radius:8px;
+  background:transparent;color:var(--text-muted);font-size:1rem;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  transition:all 0.2s;
+}
+.history-close:hover{background:#f0f0f0;color:var(--text-primary)}
+.history-list{
+  flex:1;overflow-y:auto;padding:1rem;
+  display:flex;flex-direction:column;gap:0.75rem;
+}
+.history-empty{
+  flex:1;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;color:var(--text-muted);gap:0.5rem;
+}
+.history-empty i{font-size:2rem;opacity:0.4}
+.history-empty p{font-size:0.9rem}
+.history-empty-sub{font-size:0.78rem !important;opacity:0.6}
+.history-item{
+  background:var(--bg);border-radius:var(--radius-sm);
+  padding:0.75rem;display:flex;gap:0.75rem;align-items:center;
+  border:1px solid var(--border);transition:all 0.2s;cursor:pointer;
+}
+.history-item:hover{border-color:var(--accent);box-shadow:var(--shadow-sm)}
+.history-thumb{
+  width:56px;height:56px;object-fit:cover;border-radius:8px;
+  background:#e8ecf1;flex-shrink:0;
+}
+.history-info{flex:1;min-width:0}
+.history-name{font-size:0.82rem;font-weight:500;color:var(--text-primary);
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.history-time{font-size:0.72rem;color:var(--text-muted);margin-top:2px}
+.history-actions{display:flex;gap:0.35rem;flex-shrink:0}
+.history-act-btn{
+  width:30px;height:30px;border:none;border-radius:8px;
+  background:var(--surface);color:var(--text-secondary);font-size:0.78rem;
+  cursor:pointer;display:flex;align-items:center;justify-content:center;
+  border:1px solid var(--border);transition:all 0.2s;
+}
+.history-act-btn:hover{background:var(--accent);color:#fff;border-color:var(--accent)}
+.history-act-btn.del:hover{background:var(--error);color:#fff;border-color:var(--error)}
+.history-footer{
+  padding:0.75rem 1.2rem;border-top:1px solid var(--border);
+  display:flex;justify-content:flex-end;
+}
+
+  </style>
 </head>
 <body>
 
 <nav class="navbar">
 <div class="navbar-inner">
 <div class="logo"><div class="logo-icon"><i class="fas fa-crop-simple"></i></div><span>抠图工坊</span></div>
+  <button class="nav-btn" id="historyBtn" title="历史记录"><i class="fas fa-clock-rotate-left"></i></button>
 </div>
 </nav>
 
@@ -327,6 +404,25 @@ body{
 <footer class="footer">
 <p>© 2026 抠图工坊 · 基于阿里云通用分割 API</p>
 </footer>
+  <!-- 历史记录侧边栏 -->
+  <div class="history-overlay" id="historyOverlay"></div>
+  <div class="history-panel" id="historyPanel">
+    <div class="history-header">
+      <span class="history-title"><i class="fas fa-clock-rotate-left"></i> 历史记录</span>
+      <button class="history-close" id="historyClose"><i class="fas fa-xmark"></i></button>
+    </div>
+    <div class="history-list" id="historyList">
+      <div class="history-empty" id="historyEmpty">
+        <i class="fas fa-inbox"></i>
+        <p>暂无记录</p>
+        <p class="history-empty-sub">抠图完成后会自动保存</p>
+      </div>
+    </div>
+    <div class="history-footer">
+      <button class="btn btn-secondary" id="historyClearBtn" style="font-size:0.8rem;padding:0.4rem 0.8rem"><i class="fas fa-trash-can"></i> 清空记录</button>
+    </div>
+  </div>
+
 
 </main>
 
@@ -503,6 +599,8 @@ async function startProcessing(){
     setTimeout(function(){ loadingEl.classList.remove('active'); }, 500);
 
     showMsg('处理完成，点击「下载 PNG」保存','success');
+        // 保存到历史记录
+        if(window.addMattingHistory) window.addMattingHistory(resultImage.src);
 
   } catch(err){
     console.error('Processing error:', err);
@@ -564,7 +662,161 @@ function canvasMatting(file){
   });
 }
 
-downloadBtn.addEventListener('click', function(){
+
+// ===== 历史记录功能 =====
+(function(){
+  var HISTORY_KEY = 'matting_history';
+  var MAX_ITEMS = 20;
+
+  function loadHistory(){
+    try {
+      return JSON.parse(localStorage.getItem(HISTORY_KEY)) || [];
+    } catch(e){ return []; }
+  }
+  function saveHistory(list){
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(list));
+  }
+
+  function makeThumb(dataUrl, maxW, maxH){
+    return new Promise(function(resolve){
+      var img = new Image();
+      img.onload = function(){
+        var w = img.width, h = img.height;
+        var scale = Math.min(maxW/w, maxH/h, 1);
+        w = Math.round(w*scale); h = Math.round(h*scale);
+        var c = document.createElement('canvas');
+        c.width = w; c.height = h;
+        c.getContext('2d').drawImage(img, 0, 0, w, h);
+        resolve(c.toDataURL('image/jpeg', 0.6));
+      };
+      img.onerror = function(){ resolve(dataUrl); };
+      img.src = dataUrl;
+    });
+  }
+
+  window.addMattingHistory = async function(resultDataUrl, fileName){
+    var list = loadHistory();
+    var thumb = await makeThumb(resultDataUrl, 200, 200);
+    list.unshift({
+      id: Date.now(),
+      name: fileName || ('抠图_' + new Date().toLocaleString()),
+      time: new Date().toLocaleString('zh-CN'),
+      thumb: thumb,
+      result: resultDataUrl   // 完整结果，用于下载
+    });
+    if(list.length > MAX_ITEMS) list = list.slice(0, MAX_ITEMS);
+    saveHistory(list);
+    renderHistory();
+  };
+
+  function renderHistory(){
+    var list = loadHistory();
+    var container = document.getElementById('historyList');
+    var emptyEl = document.getElementById('historyEmpty');
+    // 移除旧的历史项（保留 emptyEl）
+    var oldItems = container.querySelectorAll('.history-item');
+    oldItems.forEach(function(el){ el.remove(); });
+    if(list.length === 0){
+      emptyEl.style.display = 'flex';
+    } else {
+      emptyEl.style.display = 'none';
+      list.forEach(function(item){
+        var el = document.createElement('div');
+        el.className = 'history-item';
+        el.innerHTML =
+          '<img class="history-thumb" src="' + item.thumb + '" alt="缩略图">' +
+          '<div class="history-info">' +
+            '<div class="history-name">' + escapeHtml(item.name) + '</div>' +
+            '<div class="history-time">' + escapeHtml(item.time) + '</div>' +
+          '</div>' +
+          '<div class="history-actions">' +
+            '<button class="history-act-btn download" title="下载"><i class="fas fa-download"></i></button>' +
+            '<button class="history-act-btn preview" title="预览"><i class="fas fa-eye"></i></button>' +
+            '<button class="history-act-btn del" title="删除"><i class="fas fa-trash-can"></i></button>' +
+          '</div>';
+        // 事件
+        el.querySelector('.download').addEventListener('click', function(e){
+          e.stopPropagation();
+          downloadFromHistory(item);
+        });
+        el.querySelector('.preview').addEventListener('click', function(e){
+          e.stopPropagation();
+          previewFromHistory(item);
+        });
+        el.querySelector('.del').addEventListener('click', function(e){
+          e.stopPropagation();
+          deleteHistoryItem(item.id);
+        });
+        el.addEventListener('click', function(){ previewFromHistory(item); });
+        container.appendChild(el);
+      });
+    }
+  };
+
+  function downloadFromHistory(item){
+    var a = document.createElement('a');
+    a.href = item.result;
+    a.download = (item.name || '抠图结果') + '.png';
+    document.body.appendChild(a); a.click(); document.body.removeChild(a);
+  }
+  function previewFromHistory(item){
+    // 在主区域展示
+    var resultImg = document.getElementById('resultImage');
+    var previewSec = document.getElementById('previewSection');
+    if(resultImg && previewSec){
+      resultImg.src = item.result;
+      resultImg.style.display = 'block';
+      previewSec.classList.add('active');
+      document.getElementById('downloadBtn').disabled = false;
+      // 更新全局 resultBlob（如果可能）
+      fetch(item.result).then(function(r){ return r.blob(); }).then(function(b){
+        window._historyResultBlob = b;
+      });
+      window.scrollTo({top:0, behavior:'smooth'});
+    }
+    closeHistoryPanel();
+  }
+  window._historyResultBlob = null;
+  // 覆盖全局 download 逻辑，优先用历史 blob
+  var origDownload = document.getElementById('downloadBtn');
+  if(origDownload){
+    origDownload.addEventListener('click', function(){
+      if(window._historyResultBlob){
+        var a = document.createElement('a');
+        a.href = URL.createObjectURL(window._historyResultBlob);
+        a.download = '抠图_' + Date.now() + '.png';
+        document.body.appendChild(a); a.click(); document.body.removeChild(a);
+      }
+    });
+  }
+
+  function deleteHistoryItem(id){
+    var list = loadHistory().filter(function(x){ return x.id !== id; });
+    saveHistory(list);
+    renderHistory();
+  }
+
+  function openHistoryPanel(){ document.getElementById('historyOverlay').classList.add('active'); document.getElementById('historyPanel').classList.add('active'); renderHistory(); }
+  function closeHistoryPanel(){ document.getElementById('historyOverlay').classList.remove('active'); document.getElementById('historyPanel').classList.remove('active'); }
+  window.openHistoryPanel = openHistoryPanel;
+  window.closeHistoryPanel = closeHistoryPanel;
+
+  document.getElementById('historyBtn').addEventListener('click', openHistoryPanel);
+  document.getElementById('historyClose').addEventListener('click', closeHistoryPanel);
+  document.getElementById('historyOverlay').addEventListener('click', closeHistoryPanel);
+  document.getElementById('historyClearBtn').addEventListener('click', function(){
+    if(confirm('确定清空所有历史记录？')){ saveHistory([]); renderHistory(); }
+  });
+
+  function escapeHtml(str){
+    var div = document.createElement('div'); div.textContent = str; return div.innerHTML;
+  }
+
+  // 页面加载时预渲染（不用等面板打开）
+  renderHistory();
+})();
+
+    downloadBtn.addEventListener('click', function(){
   if(!resultBlob){ showMsg('没有可下载的文件','error'); return; }
   var a=document.createElement('a');a.href=URL.createObjectURL(resultBlob);
   a.download='抠图_'+Date.now()+'.png';document.body.appendChild(a);a.click();
