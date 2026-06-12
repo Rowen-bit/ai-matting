@@ -9,10 +9,10 @@
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Microsoft YaHei',sans-serif;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);min-height:100vh;color:#333}
 .navbar{background:rgba(255,255,255,0.95);backdrop-filter:blur(10px);padding:0.8rem 1.5rem;box-shadow:0 2px 20px rgba(0,0,0,0.1);position:sticky;top:0;z-index:1000}
-.navbar-content{max-width:1200px;margin:0 auto;display:flex;align-items:center;gap:1rem}
+.navbar-content{max-width:900px;margin:0 auto;display:flex;align-items:center;gap:1rem}
 .logo{font-size:1.4rem;font-weight:bold;color:#667eea;display:flex;align-items:center;gap:0.5rem}
 .logo i{font-size:1.6rem}
-.container{max-width:1200px;margin:2rem auto;padding:0 1rem}
+.container{max-width:900px;margin:2rem auto;padding:0 1rem}
 .hero{text-align:center;color:white;padding:2rem 1rem}
 .hero h1{font-size:2.2rem;margin-bottom:0.5rem}
 .hero p{font-size:1.1rem;opacity:0.9}
@@ -31,26 +31,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Microsoft YaHei',s
 .message.success{background:#d4edda;color:#155724;border:1px solid #c3e6cb}
 .message.error{background:#f8d7da;color:#721c24;border:1px solid #f5c6cb}
 .message.info{background:#d1ecf1;color:#0c5460;border:1px solid #bee5eb}
-.prompt-section{background:white;border-radius:16px;padding:1.5rem 2rem;box-shadow:0 15px 40px rgba(0,0,0,0.2);margin:1rem auto;max-width:850px;display:none}
-.prompt-section.active{display:block;animation:fadeInUp 0.3s ease}
-@keyframes fadeInUp{from{opacity:0;transform:translateY(15px)}to{opacity:1;transform:translateY(0)}}
-.prompt-header{display:flex;align-items:center;gap:0.5rem;margin-bottom:0.8rem;flex-wrap:wrap}
-.prompt-header i{font-size:1.2rem;color:#667eea}
-.prompt-header h3{font-size:1.1rem;color:#333}
-.prompt-hint{font-size:0.8rem;color:#999;margin-left:auto}
-.presets{display:flex;flex-wrap:wrap;gap:0.4rem;margin-bottom:0.8rem}
-.preset-tag{padding:0.35rem 0.8rem;background:#f0f0ff;border:1.5px solid #d0d0ff;border-radius:16px;font-size:0.82rem;color:#667eea;cursor:pointer;transition:all 0.2s;user-select:none}
-.preset-tag:hover{background:#e0e0ff;border-color:#667eea}
-.preset-tag.active{background:#667eea;color:white;border-color:#667eea}
-.prompt-input-wrapper{position:relative;margin-bottom:0.8rem}
-.prompt-input{width:100%;padding:0.8rem 3rem 0.8rem 1rem;border:2px solid #e0e0e0;border-radius:10px;font-size:0.95rem;font-family:inherit;resize:none;transition:all 0.3s;background:#fafafa;line-height:1.5}
-.prompt-input:focus{outline:none;border-color:#667eea;background:#fff;box-shadow:0 0 0 3px rgba(102,126,234,0.1)}
-.char-count{position:absolute;bottom:8px;right:12px;font-size:0.75rem;color:#bbb}
-.start-btn-wrap{text-align:center;margin-top:0.3rem}
-.btn-start{padding:0.75rem 2.5rem;border:none;border-radius:30px;font-size:1rem;font-weight:700;cursor:pointer;color:white;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);transition:all 0.3s;display:inline-flex;align-items:center;gap:0.5rem;box-shadow:0 6px 20px rgba(102,126,234,0.3)}
-.btn-start:hover{transform:translateY(-2px);box-shadow:0 10px 25px rgba(102,126,234,0.4)}
-.btn-start:active{transform:translateY(0)}
-.btn-start:disabled{opacity:0.5;cursor:not-allowed;transform:none;box-shadow:none}
 .preview-section{display:none;background:white;border-radius:16px;padding:1.5rem;box-shadow:0 20px 60px rgba(0,0,0,0.3);margin:1.5rem 0}
 .preview-section.active{display:block;animation:fadeIn 0.4s}
 @keyframes fadeIn{from{opacity:0;transform:translateY(15px)}to{opacity:1;transform:translateY(0)}}
@@ -76,17 +56,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Microsoft YaHei',s
 .btn-primary:disabled{opacity:0.5;cursor:not-allowed;transform:none}
 .btn-secondary{background:#f0f0f0;color:#333}
 .btn-secondary:hover{background:#e0e0e0}
-.btn-outline{background:transparent;color:#667eea;border:2px solid #667eea}
-.btn-outline:hover{background:#f0f2ff}
-.btn-success{background:#28a745;color:white}
-.btn-success:hover{background:#218838}
-.features{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:1.5rem;margin:2rem 0}
-.feature-card{background:white;padding:1.5rem;border-radius:12px;text-align:center;box-shadow:0 8px 25px rgba(0,0,0,0.1)}
-.feature-icon{font-size:2.5rem;color:#667eea;margin-bottom:0.6rem}
-.feature-card h3{margin-bottom:0.3rem;color:#333;font-size:1rem}
-.feature-card p{color:#666;font-size:0.85rem;line-height:1.5}
 .footer{text-align:center;color:white;padding:1.5rem;margin-top:2rem;font-size:0.85rem}
-@media(max-width:700px){.hero h1{font-size:1.5rem}.upload-section{padding:1rem}.preview-section{padding:1rem}.prompt-section{padding:1rem}.upload-area{padding:2rem 1rem}}
+@media(max-width:700px){.hero h1{font-size:1.5rem}.upload-section{padding:1rem}.preview-section{padding:1rem}.upload-area{padding:2rem 1rem}}
 </style>
 </head>
 <body>
@@ -113,31 +84,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Microsoft YaHei',s
 </div>
 <input type="file" id="fileInput" accept="image/jpeg,image/png,image/webp">
 <div class="message" id="message"></div>
-</div>
-
-<div class="prompt-section" id="promptSection">
-<div class="prompt-header">
-<i class="fas fa-wand-magic-sparkles"></i>
-<h3>选择抠图模式</h3>
-<span class="prompt-hint">AI 会自动识别并保留主体</span>
-</div>
-<div class="presets" id="presets">
-<span class="preset-tag" data-text="人物">👤 人物</span>
-<span class="preset-tag" data-text="宠物">🐱 宠物</span>
-<span class="preset-tag" data-text="食物">🍔 食物</span>
-<span class="preset-tag" data-text="商品">📦 商品</span>
-<span class="preset-tag" data-text="植物">🌿 植物</span>
-<span class="preset-tag" data-text="汽车">🚗 汽车</span>
-<span class="preset-tag" data-text="建筑">🏠 建筑</span>
-</div>
-<div class="prompt-input-wrapper">
-<textarea id="promptInput" class="prompt-input" placeholder="选填：描述要保留的主体（仅做提示）" rows="2" maxlength="100"></textarea>
-<span class="char-count"><span id="charCount">0</span>/100</span>
-</div>
-<div class="start-btn-wrap">
-<button class="btn-start" id="startBtn"><i class="fas fa-play"></i> 开始 AI 抠图</button>
-</div>
-<p style="margin-top:0.6rem;font-size:0.78rem;color:#bbb;text-align:center">基于 @imgly/background-removal · 浏览器端 AI · 无需上传服务器</p>
 </div>
 
 <div class="preview-section" id="previewSection">
@@ -168,24 +114,6 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Microsoft YaHei',s
 </div>
 </div>
 
-<div class="features">
-<div class="feature-card">
-<div class="feature-icon"><i class="fas fa-microchip"></i></div>
-<h3>浏览器端 AI</h3>
-<p>AI 模型在本地运行，图片不上传服务器，保障隐私安全</p>
-</div>
-<div class="feature-card">
-<div class="feature-icon"><i class="fas fa-bolt"></i></div>
-<h3>一键操作</h3>
-<p>上传即处理，无需复杂设置，自动保留主体去除背景</p>
-</div>
-<div class="feature-card">
-<div class="feature-icon"><i class="fas fa-download"></i></div>
-<h3>透明 PNG</h3>
-<p>结果可直接下载为透明背景 PNG，适用于设计、电商等场景</p>
-</div>
-</div>
-
 </div>
 
 <footer class="footer">
@@ -197,12 +125,9 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Microsoft YaHei',s
 (function(){
 'use strict';
 
-console.log('=== AI Matting v5 Starting ===');
-
 var $ = function(id){ return document.getElementById(id); };
 var uploadArea    = $('uploadArea');
 var fileInput     = $('fileInput');
-var promptSection = $('promptSection');
 var previewSection = $('previewSection');
 var originalImage = $('originalImage');
 var resultImage   = $('resultImage');
@@ -212,14 +137,11 @@ var loadingProgress = $('loadingProgress');
 var progressFill  = $('progressFill');
 var downloadBtn   = $('downloadBtn');
 var resetBtn      = $('resetBtn');
-var startBtn      = $('startBtn');
 var messageEl     = $('message');
-var promptInput   = $('promptInput');
-var charCountEl   = $('charCount');
 
 var originalFile = null;
 var resultBlob   = null;
-var removeBg     = null; // will hold the removeBackground function
+var removeBg     = null;
 
 // ============ Upload ============
 uploadArea.addEventListener('click', function(e){
@@ -258,30 +180,15 @@ function handleFile(file){
     var reader = new FileReader();
     reader.onload = function(e){
         originalImage.src = e.target.result;
-        promptSection.classList.add('active');
         previewSection.classList.add('active');
         resultImage.style.display = 'none';
         loadingEl.classList.remove('active');
-        showMsg('✅ 图片已上传，点击「开始 AI 抠图」处理','info');
-        setTimeout(function(){ promptSection.scrollIntoView({behavior:'smooth',block:'center'}); },200);
+        showMsg('✅ 图片已上传，AI 正在自动处理...','info');
+        // 上传后立即开始处理
+        startProcessing();
     };
     reader.readAsDataURL(file);
 }
-
-// ============ Preset Tags ============
-document.querySelectorAll('.preset-tag').forEach(function(tag){
-    tag.addEventListener('click', function(){
-        document.querySelectorAll('.preset-tag').forEach(function(t){ t.classList.remove('active'); });
-        tag.classList.add('active');
-        promptInput.value = tag.dataset.text;
-        charCountEl.textContent = promptInput.value.length;
-    });
-});
-
-// ============ Input ============
-promptInput.addEventListener('input',function(){
-    charCountEl.textContent = promptInput.value.length;
-});
 
 // ============ Progress ============
 function setProgress(pct, text, sub){
@@ -291,14 +198,12 @@ function setProgress(pct, text, sub){
 }
 
 // ============ Core: Remove Background ============
-startBtn.addEventListener('click', async function(){
-    if(!originalFile){ showMsg('请先上传图片！','error'); return; }
+async function startProcessing(){
+    if(!originalFile) return;
 
     loadingEl.classList.add('active');
     resultImage.style.display = 'none';
     downloadBtn.disabled = true;
-    startBtn.disabled = true;
-    startBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 处理中...';
     setProgress(10,'🔄 正在加载 AI 模型...','首次使用需下载约 40MB 模型文件');
 
     try {
@@ -307,22 +212,16 @@ startBtn.addEventListener('click', async function(){
             var imgly = window.BgRemover || window;
             if(typeof imgly.removeBackground === 'function'){
                 removeBg = imgly.removeBackground;
-                console.log('Loaded removeBackground from window.BgRemover');
             } else if(typeof window.removeBackground === 'function'){
                 removeBg = window.removeBackground;
-                console.log('Loaded removeBackground from window');
             } else {
-                // 尝试从所有导出获取
                 for(var k in window){
                     if(window[k] && typeof window[k].removeBackground === 'function'){
                         removeBg = window[k].removeBackground;
-                        console.log('Found removeBackground at window.' + k);
                         break;
                     }
                 }
                 if(!removeBg){
-                    // Fallback: use built-in canvas matting
-                    console.warn('removeBackground not found, using canvas fallback');
                     await canvasMatting(originalFile);
                     return;
                 }
@@ -331,11 +230,9 @@ startBtn.addEventListener('click', async function(){
 
         setProgress(30,'🧠 AI 正在分析图片...','正在识别主体...');
 
-        // 调用 @imgly/background-removal
         var processedBlob = await removeBg(originalFile, {
             progress: function(key, current, total){
                 var pct = current && total ? Math.round(current/total*100) : null;
-                console.log('Download progress:', key, current, total);
             },
             output: { format: 'image/png' }
         });
@@ -348,20 +245,15 @@ startBtn.addEventListener('click', async function(){
 
         setProgress(95,'✔️ 即将完成...','');
 
-        // Display result
         resultBlob = processedBlob;
         var url = URL.createObjectURL(processedBlob);
         resultImage.src = url;
         resultImage.style.display = 'block';
         downloadBtn.disabled = false;
-        var prompt = promptInput.value.trim();
-        var suffix = prompt ? '_' + prompt.replace(/[^\w\u4e00-\u9fff]/g,'') : '';
-        downloadBtn.setAttribute('data-filename', 'AI抠图' + suffix + '_' + Date.now() + '.png');
+        downloadBtn.setAttribute('data-filename', 'AI抠图_' + Date.now() + '.png');
 
         setProgress(100,'✅ 完成！','');
-        setTimeout(function(){
-            loadingEl.classList.remove('active');
-        },500);
+        setTimeout(function(){ loadingEl.classList.remove('active'); },500);
 
         showMsg('🎉 抠图完成！点击「下载 PNG」保存结果','success');
 
@@ -369,10 +261,8 @@ startBtn.addEventListener('click', async function(){
         console.error('Processing error:', err);
         loadingEl.classList.remove('active');
         showMsg('❌ 处理失败：' + err.message,'error');
-        startBtn.innerHTML = '<i class="fas fa-play"></i> 开始 AI 抠图';
-        startBtn.disabled = false;
     }
-});
+}
 
 // ============ Fallback: Pure Canvas Matting ============
 async function canvasMatting(file){
@@ -388,8 +278,6 @@ async function canvasMatting(file){
             var imageData = ctx.getImageData(0, 0, img.width, img.height);
             var data = imageData.data;
 
-            // Simple edge-difference matting: detect continuous background color
-            // Sample corners to find dominant background color
             var samples = [
                 {x:0,y:0}, {x:Math.floor(img.width/2),y:0}, {x:img.width-1,y:0},
                 {x:0,y:Math.floor(img.height/2)}, {x:img.width-1,y:Math.floor(img.height/2)},
@@ -406,9 +294,7 @@ async function canvasMatting(file){
             for(var i=0;i<data.length;i+=4){
                 var dr = data[i] - bgR, dg = data[i+1] - bgG, db = data[i+2] - bgB;
                 var dist = Math.sqrt(dr*dr + dg*dg + db*db);
-                if(dist < threshold){
-                    data[i+3] = 0; // transparent
-                }
+                if(dist < threshold) data[i+3] = 0;
             }
             ctx.putImageData(imageData, 0, 0);
             canvas.toBlob(function(blob){
@@ -457,12 +343,6 @@ resetBtn.addEventListener('click', function(){
     loadingEl.classList.remove('active');
     downloadBtn.disabled = true;
     previewSection.classList.remove('active');
-    promptSection.classList.remove('active');
-    promptInput.value = '';
-    charCountEl.textContent = '0';
-    document.querySelectorAll('.preset-tag').forEach(function(t){ t.classList.remove('active'); });
-    startBtn.disabled = false;
-    startBtn.innerHTML = '<i class="fas fa-play"></i> 开始 AI 抠图';
     messageEl.classList.remove('active');
     window.scrollTo({top:0,behavior:'smooth'});
 });
@@ -474,7 +354,7 @@ function showMsg(text, type){
     setTimeout(function(){ messageEl.classList.remove('active'); }, 6000);
 }
 
-console.log('v5 ready');
+console.log('v6 ready - 精简版');
 })();
 </script>
 </body>
