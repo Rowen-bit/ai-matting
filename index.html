@@ -290,7 +290,7 @@ body{
 <div class="upload-area" id="uploadArea">
 <div class="upload-icon-wrap"><i class="fas fa-cloud-arrow-up"></i></div>
 <div class="upload-text">点击或拖拽图片到此处</div>
-<div class="upload-hint">支持 JPG、PNG、WebP 格式 · 文件不超过 4MB</div>
+<div class="upload-hint">支持 JPG、PNG、WebP 格式 · 大图自动压缩</div>
 </div>
 <input type="file" id="fileInput" accept="image/jpeg,image/png,image/webp">
 <div class="msg" id="message"><i></i><span></span></div>
@@ -382,9 +382,7 @@ function handleFile(file){
   if(!file.type.match(/^image\/(jpeg|png|webp)$/)){
     showMsg('仅支持 JPG、PNG、WebP 格式','error'); return;
   }
-  if(file.size > 4*1024*1024){
-    showMsg('文件超过 4MB 限制','error'); return;
-  }
+  // 不再硬限制文件大小，智能压缩会处理大图
   originalFile = file;
   var reader = new FileReader();
   reader.onload = function(e){
@@ -404,25 +402,45 @@ function setProgress(pct, text, sub){
   if(sub)  loadingProgress.textContent = sub;
 }
 
-// ===== 压缩图片（Canvas 缩小到 1200px 以内，输出 JPEG） =====
+// ===== 智能压缩图片：分步压缩直到 base64 ≤ 3.5MB =====
 function compressToBase64(file){
   return new Promise(function(resolve, reject){
     var img = new Image();
     img.onload = function(){
-      var maxDim = 1200;
-      var w = img.width, h = img.height;
-      if(w > maxDim || h > maxDim){
-        var scale = Math.min(maxDim / w, maxDim / h);
-        w = Math.round(w * scale);
-        h = Math.round(h * scale);
+      // 压缩参数档位：逐步缩小尺寸和质量
+      var levels = [
+        {maxDim: 1600, quality: 0.90},
+        {maxDim: 1200, quality: 0.85},
+        {maxDim: 1000, quality: 0.80},
+        {maxDim: 800,  quality: 0.75},
+        {maxDim: 600,  quality: 0.70},
+      ];
+      // base64 编码膨胀约33%，FC请求体限制约4MB，留余量 → base64 ≤3.5MB
+      var maxBase64Size = 3.5 * 1024 * 1024;
+      var base64 = null;
+      var origW = img.width, origH = img.height;
+
+      for(var i = 0; i < levels.length; i++){
+        var lvl = levels[i];
+        var w = origW, h = origH;
+        if(w > lvl.maxDim || h > lvl.maxDim){
+          var scale = Math.min(lvl.maxDim / w, lvl.maxDim / h);
+          w = Math.round(w * scale);
+          h = Math.round(h * scale);
+        }
+        var canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        var ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+        var dataUrl = canvas.toDataURL('image/jpeg', lvl.quality);
+        base64 = dataUrl.split(',')[1];
+        // 检查base64大小（字符串长度≈字节数）
+        if(base64.length <= maxBase64Size){
+          console.log('压缩成功：' + origW + 'x' + origH + ' → ' + w + 'x' + h + ', Q=' + lvl.quality + ', base64=' + Math.round(base64.length/1024) + 'KB');
+          break;
+        }
+        console.log('档位' + i + '仍太大(base64=' + Math.round(base64.length/1024) + 'KB)，继续压缩...');
       }
-      var canvas = document.createElement('canvas');
-      canvas.width = w;
-      canvas.height = h;
-      var ctx = canvas.getContext('2d');
-      ctx.drawImage(img, 0, 0, w, h);
-      var dataUrl = canvas.toDataURL('image/jpeg', 0.85);
-      var base64 = dataUrl.split(',')[1];
       resolve(base64);
     };
     img.onerror = reject;
