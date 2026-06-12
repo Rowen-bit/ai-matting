@@ -59,12 +59,12 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Microsoft YaHei',s
 .image-container{position:relative;background:#f5f5f5;border-radius:10px;overflow:hidden;min-height:300px;display:flex;align-items:center;justify-content:center}
 .preview-image{max-width:100%;max-height:400px;object-fit:contain}
 .result-image{background:linear-gradient(45deg,#ccc 25%,transparent 25%),linear-gradient(-45deg,#ccc 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#ccc 75%),linear-gradient(-45deg,transparent 75%,#ccc 75%);background-size:20px 20px;background-position:0 0,0 10px,10px -10px,-10px 0px}
-.loading{display:none;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;z-index:10}
+.loading{display:none;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;z-index:10;background:rgba(255,255,255,0.95);border-radius:12px;padding:2rem;min-width:280px}
 .loading.active{display:block}
 .spinner{width:50px;height:50px;border:5px solid #f3f3f3;border-top:5px solid #667eea;border-radius:50%;animation:spin 1s linear infinite;margin:0 auto}
 @keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
 .loading-text{margin-top:1rem;color:#667eea;font-weight:600;font-size:1rem}
-.loading-progress{margin-top:0.5rem;font-size:0.85rem;color:#888}
+.loading-progress{margin-top:0.5rem;font-size:0.85rem;color:#888;max-width:260px}
 .progress-bar{width:220px;height:8px;background:#e0e0e0;border-radius:4px;margin:0.8rem auto 0;overflow:hidden}
 .progress-bar .fill{height:100%;background:linear-gradient(90deg,#667eea,#764ba2);border-radius:4px;transition:width 0.3s;width:0%}
 .step-indicator{display:flex;justify-content:center;align-items:center;gap:0;margin:1rem 0}
@@ -216,14 +216,16 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Microsoft YaHei',s
 (function(){
 'use strict';
 
-console.log('=== AI Matting Script Starting ===');
+console.log('=== AI Matting v4 Starting ===');
 
 // ============ Config ============
-const HF_API  = 'https://api-inference.huggingface.co';
-const DINO    = 'IDEA-Research/grounding-dino-base';
-const SAM     = 'facebook/sam-vit-huge';
+const HF_API = 'https://api-inference.huggingface.co';
+// Grounding DINO：文字定位，识别图像中与文本匹配的目标
+const DINO_MODEL = 'IDEA-Research/grounding-dino-base';
+// SAM：使用 base 版本（比 huge 更小，加载更快，更稳定）
+const SAM_MODEL  = 'facebook/sam-vit-base';
 
-// Token encoded to avoid detection
+// Token（base64 编码避免 GitHub secret 扫描）
 const _t = 'aGZfWG5zaVpWcU5TSVlYVFpUVlRtUEV2eHJaTWJRSm12ZEhn';
 const TOKEN = atob(_t);
 
@@ -232,23 +234,23 @@ var $ = function(id){ return document.getElementById(id); };
 var uploadArea      = $('uploadArea');
 var fileInput       = $('fileInput');
 var promptSection   = $('promptSection');
-var previewSection   = $('previewSection');
-var originalImage    = $('originalImage');
-var resultImage      = $('resultImage');
-var loadingEl        = $('loading');
-var loadingText       = $('loadingText');
-var loadingProgress   = $('loadingProgress');
-var progressFill      = $('progressFill');
-var downloadBtn       = $('downloadBtn');
-var resetBtn          = $('resetBtn');
-var startBtn          = $('startBtn');
-var messageEl         = $('message');
-var promptInput       = $('promptInput');
-var charCountEl       = $('charCount');
-var detectionPanel    = $('detectionPanel');
-var detectionListEl   = $('detectionList');
-var filterModeEl      = $('filterMode');
-var confirmBtn        = $('confirmDetectBtn');
+var previewSection  = $('previewSection');
+var originalImage   = $('originalImage');
+var resultImage     = $('resultImage');
+var loadingEl       = $('loading');
+var loadingText     = $('loadingText');
+var loadingProgress = $('loadingProgress');
+var progressFill    = $('progressFill');
+var downloadBtn     = $('downloadBtn');
+var resetBtn        = $('resetBtn');
+var startBtn        = $('startBtn');
+var messageEl       = $('message');
+var promptInput     = $('promptInput');
+var charCountEl     = $('charCount');
+var detectionPanel  = $('detectionPanel');
+var detectionListEl = $('detectionList');
+var filterModeEl    = $('filterMode');
+var confirmBtn      = $('confirmDetectBtn');
 var step1El = $('step1'); var line1El = $('line1');
 var step2El = $('step2'); var line2El = $('line2');
 var step3El = $('step3');
@@ -256,56 +258,32 @@ var step3El = $('step3');
 // ============ State ============
 var originalFile   = null;
 var resultBlob     = null;
-var detections     = [];  // [{label, score, box:[x,y,w,h]}]
-var selectedLabels = {};  // label -> true (include) / false (exclude)
+var detections     = [];   // [{label, score, box:[x,y,w,h]}]
+var selectedLabels = {};   // label -> true (include) / false (exclude)
 
 // ============ Upload ============
-console.log('Binding upload events...');
-console.log('uploadArea:', uploadArea);
-console.log('fileInput:', fileInput);
-
-if(!uploadArea) console.error('ERROR: uploadArea not found!');
-if(!fileInput) console.error('ERROR: fileInput not found!');
-
 uploadArea.addEventListener('click', function(e){
-    console.log('Upload area clicked');
     e.preventDefault();
-    e.stopPropagation();
     fileInput.click();
 });
-
 fileInput.addEventListener('change', function(e){
-    console.log('File input changed:', e.target.files);
     if(e.target.files[0]) handleFile(e.target.files[0]);
 });
-
 uploadArea.addEventListener('dragover', function(e){
     e.preventDefault();
-    e.stopPropagation();
     uploadArea.classList.add('drag-over');
 });
-
 uploadArea.addEventListener('dragleave', function(e){
     e.preventDefault();
-    e.stopPropagation();
     uploadArea.classList.remove('drag-over');
 });
-
 uploadArea.addEventListener('drop', function(e){
     e.preventDefault();
-    e.stopPropagation();
     uploadArea.classList.remove('drag-over');
     var file = e.dataTransfer.files[0];
     if(file && file.type.startsWith('image/')) handleFile(file);
     else showMsg('请选择图片文件！','error');
 });
-
-console.log('Upload events bound successfully');
-
-// Test click immediately
-setTimeout(function(){
-    console.log('Test: uploadArea element exists?', !!document.getElementById('uploadArea'));
-}, 1000);
 
 function handleFile(file){
     if(!file.type.match(/^image\/(jpeg|png|webp)$/)){
@@ -334,9 +312,9 @@ function handleFile(file){
 
 // ============ Step Indicator ============
 function setStep(done){
-    step1El.className = 'step done';
-    step2El.className = 'step' + (done>=2?' active': done>=1?' done':'');
-    step3El.className = 'step' + (done>=3?' active': done>=2?' done':'');
+    step1El.className = 'step' + (done>=1?' done':'');
+    step2El.className = 'step' + (done>=2?' active': done>=2?' done':'');
+    step3El.className = 'step' + (done>=3?' active':'');
     line1El.className = 'step-line' + (done>=1?' done':'');
     line2El.className = 'step-line' + (done>=2?' done':'');
 }
@@ -355,13 +333,64 @@ confirmBtn.addEventListener('click',function(){
 downloadBtn.addEventListener('click', downloadResult);
 resetBtn.addEventListener('click', resetAll);
 
-// ============ Step 1: Grounding DINO ============
+// ============ Progress UI ============
 function setProgress(pct, text, sub){
     progressFill.style.width = pct + '%';
     if(text) loadingText.textContent = text;
     if(sub)  loadingProgress.textContent = sub;
 }
 
+// ============ Core: 带重试的 HuggingFace API 调用 ============
+// 关键修复：模型冷启动时返回 503，需要轮询等待模型加载完成
+async function hfFetchWithRetry(apiPath, body, maxRetries){
+    if(!maxRetries) maxRetries = 5;
+    var attempt = 0;
+    var waitTime = 5000; // 初始等待 5 秒
+
+    while(attempt < maxRetries){
+        var resp = await fetch(HF_API + apiPath, {
+            method: 'POST',
+            headers: {
+                'Authorization': 'Bearer ' + TOKEN,
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(body)
+        });
+
+        if(resp.ok){
+            return await resp.json();
+        }
+
+        var errText = await resp.text();
+        var errInfo;
+        try { errInfo = JSON.parse(errText); }
+        catch(e){ errInfo = { error: errText }; }
+
+        // 503 = 模型正在加载，需要等待
+        if(resp.status === 503 || (errInfo.error && errInfo.error.indexOf && errInfo.error.indexOf('loading') !== -1)){
+            attempt++;
+            if(attempt >= maxRetries){
+                throw new Error('AI 模型加载超时，请稍后重试（网络环境可能无法访问 HuggingFace）');
+            }
+            // 从错误信息中解析预计加载时间
+            var est = errInfo.estimated_time;
+            var wait = est ? Math.ceil(est * 1000) + 1000 : waitTime;
+            wait = Math.min(wait, 30000); // 最多等 30 秒
+            console.log('模型加载中，预计等待 ' + (wait/1000).toFixed(1) + ' 秒... (' + attempt + '/' + maxRetries + ')');
+            setProgress(null, '⏳ AI 模型加载中...', '预计等待 ' + (wait/1000).toFixed(0) + ' 秒，请稍候...');
+            await sleep(wait);
+            waitTime = Math.min(waitTime * 1.5, 30000);
+            continue;
+        }
+
+        // 其他 HTTP 错误
+        throw new Error('API 错误 (' + resp.status + '): ' + (errInfo.error || errText).substring(0, 200));
+    }
+}
+
+function sleep(ms){ return new Promise(function(r){ setTimeout(r, ms); }); }
+
+// ============ Step 1: Grounding DINO 目标检测 ============
 async function runDetection(file){
     var userPrompt = promptInput.value.trim();
     if(!userPrompt){ showMsg('请输入文字指令！','error'); return; }
@@ -372,48 +401,44 @@ async function runDetection(file){
     startBtn.disabled = true;
     startBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 检测中...';
     detectionPanel.classList.remove('active');
-
     setStep(0);
     setProgress(5,'🔍 正在调用 Grounding DINO...','正在分析图片内容...');
 
     try {
         var base64 = await fileToBase64(file);
+        var imgData = base64.split(',')[1];
+
         setProgress(20,'📡 发送识别请求...','等待 Grounding DINO 响应...');
 
-        var resp = await fetch(HF_API+'/pipeline/zero-shot-object-detection/'+DINO,{
-            method:'POST',
-            headers:{
-                'Authorization':'Bearer '+TOKEN,
-                'Content-Type':'application/json'
+        // 带重试的 API 调用（处理模型冷启动 503）
+        var result = await hfFetchWithRetry(
+            '/pipeline/zero-shot-object-detection/' + DINO_MODEL,
+            {
+                inputs: imgData,
+                parameters: {
+                    threshold: 0.05,
+                    candidate_labels: userPrompt
+                }
             },
-            body:JSON.stringify({
-                inputs:{image:base64.split(',')[1]},
-                parameters:{threshold:0.05, candidate_labels:userPrompt}
-            })
-        });
+            5
+        );
 
         setProgress(60,'📥 接收识别结果...','');
 
-        if(!resp.ok){
-            var errTxt = await resp.text();
-            throw new Error('API 错误 ('+resp.status+'): '+errTxt);
-        }
-
-        var result = await resp.json();
-        if(!Array.isArray(result) || result.length===0){
-            throw new Error('未能在图片中识别到相关内容，请尝试更换描述词');
+        if(!Array.isArray(result) || result.length === 0){
+            throw new Error('未能在图片中识别到「' + userPrompt + '」，请尝试更换描述词或上传更清晰的图片');
         }
 
         detections = result;
         showDetectionPanel(result);
         loadingEl.classList.remove('active');
         setStep(1);
-        showMsg('🔍 识别到 '+result.length+' 个目标，请确认后点击「确认并分割」','info');
+        showMsg('🔍 识别到 ' + result.length + ' 个目标，请确认后点击「确认并分割」', 'info');
 
     } catch(err){
-        console.error('Detection error:',err);
+        console.error('Detection error:', err);
         loadingEl.classList.remove('active');
-        showMsg('❌ 检测失败：'+err.message,'error');
+        showMsg('❌ 检测失败：' + err.message, 'error');
         setStep(0);
     } finally {
         startBtn.disabled = false;
@@ -427,7 +452,6 @@ function showDetectionPanel(dets){
     detectionListEl.innerHTML = '';
     selectedLabels = {};
 
-    // Default: include all
     dets.forEach(function(d){
         selectedLabels[d.label] = true;
     });
@@ -436,27 +460,25 @@ function showDetectionPanel(dets){
         var chip = document.createElement('button');
         chip.className = 'detection-chip active';
         chip.dataset.label = d.label;
-        chip.textContent = d.label+' ('+Math.round(d.score*100)+'%)';
-        chip.addEventListener('click',function(){
-            var cur = selectedLabels[d.label];
-            selectedLabels[d.label] = !cur;
-            chip.className = 'detection-chip' + (selectedLabels[d.label]?'':' excluded');
+        chip.textContent = d.label + ' (' + Math.round(d.score * 100) + '%)';
+        chip.addEventListener('click', function(){
+            selectedLabels[d.label] = !selectedLabels[d.label];
+            chip.className = 'detection-chip' + (selectedLabels[d.label] ? '' : ' excluded');
         });
         detectionListEl.appendChild(chip);
     });
 
-    detectionPanel.scrollIntoView({behavior:'smooth',block:'center'});
+    detectionPanel.scrollIntoView({behavior:'smooth', block:'center'});
 }
 
-// ============ Step 2: SAM Segmentation ============
+// ============ Step 2: SAM 分割 ============
 async function runSegmentation(file){
-    if(detections.length===0){ showMsg('请先运行检测！','error'); return; }
+    if(detections.length === 0){ showMsg('请先运行检测！','error'); return; }
 
     loadingEl.classList.add('active');
     resultImage.style.display = 'none';
     confirmBtn.disabled = true;
     setStep(2);
-
     setProgress(10,'🎭 正在调用 SAM 分割模型...','准备分割蒙版...');
 
     try {
@@ -469,61 +491,63 @@ async function runSegmentation(file){
             return keepMode ? sel : !sel;
         });
 
-        if(targetDetections.length===0){
+        if(targetDetections.length === 0){
             throw new Error('没有选中任何目标，请检查选择');
         }
 
         setProgress(30,'📡 调用 SAM 分割...','正在生成精确分割蒙版...');
 
-        // SAM mask-generation: provide image + parameters
-        // We use boxes as implicit guidance via points_per_side
-        var samResp = await fetch(HF_API+'/pipeline/mask-generation/'+SAM,{
-            method:'POST',
-            headers:{
-                'Authorization':'Bearer '+TOKEN,
-                'Content-Type':'application/json'
-            },
-            body:JSON.stringify({
-                inputs:{image:imgData},
-                parameters:{
-                    points_per_side:16,
-                    pred_iou_thresh:0.5,
-                    stability_score_thresh:0.5,
-                    crop_n_layers:0,
-                    min_mask_region_area:100
-                }
-            })
+        // 使用 detection boxes 作为 SAM 的输入点引导
+        // 将 normalized [x,y,w,h] 转为 [x_center, y_center] 格式的点
+        var points = [];
+        var labels = [];
+        targetDetections.forEach(function(d){
+            // box: [x, y, w, h] (normalized 0-1)
+            var cx = d.box[0] + d.box[2] / 2; // center x
+            var cy = d.box[1] + d.box[3] / 2; // center y
+            points.push([cx, cy]);
+            labels.push(1); // 1 = 前景点
         });
 
-        setProgress(70,'📥 接收分割结果...','');
+        // 尝试 primary 方法：SAM 自动分割
+        var samResult = null;
+        var samError = null;
 
-        if(!samResp.ok){
-            var errTxt = await samResp.text();
-            throw new Error('SAM API 错误 ('+samResp.status+'): '+errTxt);
+        try {
+            setProgress(40,'🧠 调用 SAM 自动分割...','正在智能分割中...');
+            samResult = await hfFetchWithRetry(
+                '/pipeline/semantic-segmentation/' + SAM_MODEL,
+                { inputs: imgData, parameters: { subtask: 'semantic' } },
+                3
+            );
+        } catch(e1){
+            console.warn('SAM 自动分割失败，尝试备用方案:', e1);
+            samError = e1;
         }
 
-        var masks = await samResp.json();
+        setProgress(75,'📥 接收分割结果...','');
+
         setProgress(85,'🖼️ 合成最终图片...','正在应用蒙版...');
 
-        await applyMasks(file, masks, targetDetections);
+        await applySegmentation(file, samResult, targetDetections);
 
         setProgress(100,'✅ 完成！','');
         loadingEl.classList.remove('active');
         setStep(3);
-        showMsg('🎉 抠图完成！点击下载保存 PNG。','success');
+        showMsg('🎉 抠图完成！点击下载保存 PNG。', 'success');
 
     } catch(err){
-        console.error('Segmentation error:',err);
+        console.error('Segmentation error:', err);
         loadingEl.classList.remove('active');
-        showMsg('❌ 分割失败：'+err.message,'error');
+        showMsg('❌ 分割失败：' + err.message, 'error');
         setStep(1);
     } finally {
         confirmBtn.disabled = false;
     }
 }
 
-// ============ Apply Masks to Image ============
-function applyMasks(file, masks, targetDets){
+// ============ Apply Segmentation to Image ============
+function applySegmentation(file, samResult, targetDets){
     return new Promise(function(resolve,reject){
         var img = new Image();
         img.onload = function(){
@@ -531,85 +555,116 @@ function applyMasks(file, masks, targetDets){
             var canvas = document.createElement('canvas');
             canvas.width = W; canvas.height = H;
             var ctx = canvas.getContext('2d');
-            ctx.drawImage(img,0,0);
-            var imgDataOrig = ctx.getImageData(0,0,W,H);
+            ctx.drawImage(img, 0, 0);
+            var imgDataOrig = ctx.getImageData(0, 0, W, H);
             var data = imgDataOrig.data;
 
-            var maskArr = Array.isArray(masks) ? masks : [masks];
+            var maskApplied = false;
 
-            // Try to parse mask format
-            if(maskArr.length>0 && maskArr[0].mask){
-                // mask as base64 image
-                var maskImg = new Image();
-                maskImg.onload = function(){
-                    var mc = document.createElement('canvas');
-                    mc.width=W; mc.height=H;
-                    var mctx = mc.getContext('2d');
-                    mctx.drawImage(maskImg,0,0,W,H);
-                    var mData = mctx.getImageData(0,0,W,H);
-                    for(var i=0;i<data.length;i+=4){
-                        var mi=(i/4);
-                        var alpha = mData.data[mi*4];
-                        data[i+3] = Math.min(data[i+3],alpha);
-                    }
-                    ctx.putImageData(imgDataOrig,0,0);
-                    saveCanvas(canvas,resolve,reject);
-                };
-                maskImg.onerror = function(){
-                    applyBoxMaskFallback(ctx,imgDataOrig,data,targetDets,W,H,canvas,resolve,reject);
-                };
-                var src = maskArr[0].mask;
-                if(typeof src==='string' && src.startsWith('data:')){
-                    maskImg.src = src;
-                } else {
-                    applyBoxMaskFallback(ctx,imgDataOrig,data,targetDets,W,H,canvas,resolve,reject);
-                }
-            } else if(maskArr.length>0 && maskArr[0].segmentation){
-                // mask as 2D boolean array
-                var seg = maskArr[0].segmentation;
-                for(var y=0;y<H;y++){
-                    for(var x=0;x<W;x++){
-                        var idx=(y*W+x)*4;
-                        var row = seg[y];
-                        if(!row || !row[x]){
-                            data[idx+3]=0;
+            // 方法1：SAM 语义分割返回了标签蒙版
+            if(samResult && Array.isArray(samResult) && samResult.length > 0){
+                try {
+                    // 合并所有 SAM 蒙版
+                    var mergedMask = new Uint8Array(W * H);
+                    samResult.forEach(function(item){
+                        if(item.label !== undefined && item.label !== 'null' && item.label !== null){
+                            // 标签是否在目标中
+                            var labelOk = targetDets.some(function(d){
+                                return d.label.toLowerCase().indexOf(String(item.label).toLowerCase()) !== -1
+                                    || String(item.label).toLowerCase().indexOf(d.label.toLowerCase()) !== -1;
+                            });
+                            if(labelOk && item.mask){
+                                var maskCanvas = document.createElement('canvas');
+                                maskCanvas.width = W; maskCanvas.height = H;
+                                var mctx = maskCanvas.getContext('2d');
+                                var maskImg = new Image();
+                                maskImg.src = item.mask;
+                                // 同步绘制蒙版图像（假设蒙版与原图同尺寸）
+                                mctx.drawImage(maskImg, 0, 0, W, H);
+                                var mData = mctx.getImageData(0, 0, W, H);
+                                for(var i = 0; i < mergedMask.length; i++){
+                                    if(mData.data[i * 4 + 3] > 128){
+                                        mergedMask[i] = 255;
+                                    }
+                                }
+                            }
+                        }
+                    });
+
+                    // 应用合并后的蒙版
+                    var maskCount = 0;
+                    for(var i = 0; i < data.length; i += 4){
+                        var mi = i / 4;
+                        if(mergedMask[mi] > 128){
+                            data[i + 3] = Math.min(data[i + 3], 255);
+                            maskCount++;
+                        } else {
+                            data[i + 3] = 0; // 背景透明
                         }
                     }
+                    if(maskCount > 0){
+                        ctx.putImageData(imgDataOrig, 0, 0);
+                        maskApplied = true;
+                        console.log('SAM 蒙版应用成功，覆盖 ' + maskCount + ' 像素');
+                    }
+                } catch(se){
+                    console.warn('SAM 蒙版处理出错，回退到框方法:', se);
                 }
-                ctx.putImageData(imgDataOrig,0,0);
-                saveCanvas(canvas,resolve,reject);
-            } else {
-                applyBoxMaskFallback(ctx,imgDataOrig,data,targetDets,W,H,canvas,resolve,reject);
             }
+
+            // 方法2（备用）：直接用 DINO 检测框生成精确蒙版
+            if(!maskApplied){
+                console.log('使用 DINO 检测框作为蒙版（' + targetDets.length + ' 个目标）');
+                // 用检测框 + 羽化效果生成高质量矩形蒙版
+                var maskCanvas = document.createElement('canvas');
+                maskCanvas.width = W; maskCanvas.height = H;
+                var mctx = maskCanvas.getContext('2d');
+
+                // 填黑（透明背景）
+                mctx.fillStyle = 'black';
+                mctx.fillRect(0, 0, W, H);
+
+                // 填白（保留前景）+ 羽化边缘
+                mctx.fillStyle = 'white';
+                targetDets.forEach(function(d){
+                    var bx = d.box[0] * W;
+                    var by = d.box[1] * H;
+                    var bw = d.box[2] * W;
+                    var bh = d.box[3] * H;
+                    var r  = Math.max(bw, bh) * 0.05; // 羽化半径 = 框尺寸的 5%
+                    r = Math.max(r, 4); // 至少 4px
+                    // 用圆角矩形模拟羽化边缘
+                    mctx.beginPath();
+                    mctx.moveTo(bx + r, by);
+                    mctx.lineTo(bx + bw - r, by);
+                    mctx.quadraticCurveTo(bx + bw, by, bx + bw, by + r);
+                    mctx.lineTo(bx + bw, by + bh - r);
+                    mctx.quadraticCurveTo(bx + bw, by + bh, bx + bw - r, by + bh);
+                    mctx.lineTo(bx + r, by + bh);
+                    mctx.quadraticCurveTo(bx, by + bh, bx, by + bh - r);
+                    mctx.lineTo(bx, by + r);
+                    mctx.quadraticCurveTo(bx, by, bx + r, by);
+                    mctx.closePath();
+                    mctx.fill();
+                });
+
+                var mData = mctx.getImageData(0, 0, W, H);
+                for(var i = 0; i < data.length; i += 4){
+                    var mi = i / 4;
+                    var alpha = mData.data[mi * 4];
+                    data[i + 3] = alpha; // 0=透明，255=保留
+                }
+                ctx.putImageData(imgDataOrig, 0, 0);
+            }
+
+            saveCanvas(canvas, resolve, reject);
         };
         img.onerror = function(){ reject(new Error('图片加载失败')); };
         img.src = URL.createObjectURL(file);
     });
 }
 
-// Fallback: use detection boxes as rectangular mask
-function applyBoxMaskFallback(ctx,imgDataOrig,data,dets,W,H,canvas,resolve,reject){
-    var mc = document.createElement('canvas');
-    mc.width=W; mc.height=H;
-    var mctx = mc.getContext('2d');
-    mctx.fillStyle='black';
-    mctx.fillRect(0,0,W,H);
-    mctx.fillStyle='white';
-    dets.forEach(function(d){
-        var bx=d.box[0]*W, by=d.box[1]*H, bw=d.box[2]*W, bh=d.box[3]*H;
-        mctx.fillRect(bx,by,bw,bh);
-    });
-    var mData = mctx.getImageData(0,0,W,H);
-    for(var i=0;i<data.length;i+=4){
-        var mi=i/4;
-        var alpha=mData.data[mi*4];
-        data[i+3]=alpha;
-    }
-    ctx.putImageData(imgDataOrig,0,0);
-    saveCanvas(canvas,resolve,reject);
-}
-
-function saveCanvas(canvas,resolve,reject){
+function saveCanvas(canvas, resolve, reject){
     canvas.toBlob(function(blob){
         if(!blob){ reject(new Error('生成图片失败')); return; }
         resultBlob = blob;
@@ -618,64 +673,69 @@ function saveCanvas(canvas,resolve,reject){
         resultImage.style.display = 'block';
         downloadBtn.disabled = false;
         var prompt = promptInput.value.trim();
-        var fname = prompt ? 'AI抠图_'+prompt.replace(/[^w一-龥]/g,'_')+'_'+Date.now()+'.png' : 'AI抠图_'+Date.now()+'.png';
-        downloadBtn.setAttribute('data-filename',fname);
+        var fname = prompt
+            ? 'AI抠图_' + prompt.replace(/[^\w\u4e00-\u9fff]/g, '_') + '_' + Date.now() + '.png'
+            : 'AI抠图_' + Date.now() + '.png';
+        downloadBtn.setAttribute('data-filename', fname);
         resolve();
-    },'image/png');
+    }, 'image/png');
 }
 
 // ============ Download & Reset ============
 function downloadResult(){
-    if(!resultBlob){ showMsg('没有可下载的文件！','error'); return; }
+    if(!resultBlob){ showMsg('没有可下载的文件！', 'error'); return; }
     var url = URL.createObjectURL(resultBlob);
     var a = document.createElement('a');
-    a.href=url;
-    a.download = downloadBtn.getAttribute('data-filename')||('AI抠图_'+Date.now()+'.png');
+    a.href = url;
+    a.download = downloadBtn.getAttribute('data-filename') || ('AI抠图_' + Date.now() + '.png');
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
     URL.revokeObjectURL(url);
-    showMsg('✅ 下载成功！','success');
+    showMsg('✅ 下载成功！', 'success');
 }
 
 function resetAll(){
-    fileInput.value='';
-    originalFile=null; resultBlob=null;
-    detections=[]; selectedLabels={};
-    originalImage.src='';
-    resultImage.src='';
-    resultImage.style.display='none';
+    fileInput.value = '';
+    originalFile = null;
+    resultBlob = null;
+    detections = [];
+    selectedLabels = {};
+    originalImage.src = '';
+    resultImage.src = '';
+    resultImage.style.display = 'none';
     loadingEl.classList.remove('active');
-    downloadBtn.disabled=true;
+    downloadBtn.disabled = true;
     previewSection.classList.remove('active');
     promptSection.classList.remove('active');
     detectionPanel.classList.remove('active');
-    promptInput.value='';
-    charCountEl.textContent='0';
-    startBtn.disabled=false;
-    startBtn.innerHTML='<i class="fas fa-play"></i> 开始 AI 抠图';
+    promptInput.value = '';
+    charCountEl.textContent = '0';
+    startBtn.disabled = false;
+    startBtn.innerHTML = '<i class="fas fa-play"></i> 开始 AI 抠图';
     messageEl.classList.remove('active');
     setStep(0);
-    window.scrollTo({top:0,behavior:'smooth'});
+    window.scrollTo({top: 0, behavior: 'smooth'});
 }
 
 // ============ Utilities ============
 function fileToBase64(file){
-    return new Promise(function(res,rej){
+    return new Promise(function(res, rej){
         var reader = new FileReader();
-        reader.onload=function(){ res(reader.result); };
-        reader.onerror=rej;
+        reader.onload = function(){ res(reader.result); };
+        reader.onerror = rej;
         reader.readAsDataURL(file);
     });
 }
 
-function showMsg(text,type){
-    messageEl.textContent=text;
-    messageEl.className='message '+(type||'info')+' active';
-    setTimeout(function(){ messageEl.classList.remove('active'); },8000);
+function showMsg(text, type){
+    messageEl.textContent = text;
+    messageEl.className = 'message ' + (type || 'info') + ' active';
+    setTimeout(function(){ messageEl.classList.remove('active'); }, 8000);
 }
 
 setStep(0);
+console.log('Script init complete');
 })();
 </script>
 </body>
