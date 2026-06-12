@@ -283,14 +283,14 @@ body{
 <div class="badge hero-badge"><i class="fas fa-sparkles"></i> 免费在线工具</div>
 <h1>一键去除图片背景</h1>
 <p>上传图片即可获得透明背景 PNG</p>
-<p class="sub">浏览器端处理 · 图片不会离开你的设备 · 无需注册</p>
+<p class="sub">阿里云 AI 处理 · 需要本地代理服务</p>
 </div>
 
 <div class="upload-section">
 <div class="upload-area" id="uploadArea">
 <div class="upload-icon-wrap"><i class="fas fa-cloud-arrow-up"></i></div>
 <div class="upload-text">点击或拖拽图片到此处</div>
-<div class="upload-hint">支持 JPG、PNG、WebP 格式 · 文件不超过 10MB</div>
+<div class="upload-hint">支持 JPG、PNG、WebP 格式 · 文件不超过 4MB</div>
 </div>
 <input type="file" id="fileInput" accept="image/jpeg,image/png,image/webp">
 <div class="msg" id="message"><i></i><span></span></div>
@@ -310,8 +310,8 @@ body{
 <div class="image-frame result-frame">
 <div class="loading-overlay" id="loading">
 <div class="spinner-wrap"><div class="spinner-ring"></div></div>
-<div class="loading-text" id="loadingText">正在准备模型...</div>
-<div class="loading-sub" id="loadingProgress">首次使用需下载约 40MB 模型文件</div>
+<div class="loading-text" id="loadingText">正在处理...</div>
+<div class="loading-sub" id="loadingProgress">上传图片到服务器</div>
 <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
 </div>
 <img id="resultImage" alt="抠图结果" style="display:none;">
@@ -325,33 +325,46 @@ body{
 </div>
 
 <footer class="footer">
-<p>© 2026 抠图工坊 · 基于 @imgly/background-removal 引擎</p>
+<p>© 2026 抠图工坊 · 基于阿里云通用分割 API</p>
 </footer>
 
 </main>
 
-<script src="background-removal-bundle.js"></script>
 <script>
 (function(){
 'use strict';
 
 var $ = function(id){ return document.getElementById(id); };
-var uploadArea     = $('uploadArea');
-var fileInput      = $('fileInput');
-var previewSection = $('previewSection');
-var originalImage  = $('originalImage');
-var resultImage    = $('resultImage');
-var loadingEl      = $('loading');
-var loadingText    = $('loadingText');
-var loadingProgress= $('loadingProgress');
-var progressFill   = $('progressFill');
-var downloadBtn    = $('downloadBtn');
-var resetBtn       = $('resetBtn');
-var messageEl      = $('message');
+var uploadArea      = $('uploadArea');
+var fileInput       = $('fileInput');
+var previewSection  = $('previewSection');
+var originalImage   = $('originalImage');
+var resultImage     = $('resultImage');
+var loadingEl       = $('loading');
+var loadingText     = $('loadingText');
+var loadingProgress = $('loadingProgress');
+var progressFill    = $('progressFill');
+var downloadBtn     = $('downloadBtn');
+var resetBtn        = $('resetBtn');
+var messageEl       = $('message');
 
 var originalFile = null;
 var resultBlob   = null;
-var removeBg     = null;
+
+// 代理地址：支持 localStorage 配置，部署后设一次即可
+// 设置方法：浏览器控制台执行
+//   localStorage.setItem('api', 'https://xxx.cn-shanghai.fc.aliyuncs.com/api/matting')
+var PROXY_URL = localStorage.getItem('api') || 'https://matting-ai-matting-svc-evgawfnhsq.cn-shanghai.fcapp.run/api/matting';
+
+// 在页面右上角显示当前 API 地址（方便确认）
+setTimeout(function(){
+  if(localStorage.getItem('api')){
+    var el = document.createElement('div');
+    el.style.cssText = 'position:fixed;top:62px;right:12px;font-size:11px;color:#8d99ae;background:#fff;padding:3px 8px;border-radius:6px;border:1px solid #e8ecf1;z-index:9999';
+    el.textContent = 'API: ' + localStorage.getItem('api').slice(0,30) + '...';
+    document.body.appendChild(el);
+  }
+}, 500);
 
 // Upload
 uploadArea.addEventListener('click', function(e){ e.preventDefault(); fileInput.click(); });
@@ -369,8 +382,8 @@ function handleFile(file){
   if(!file.type.match(/^image\/(jpeg|png|webp)$/)){
     showMsg('仅支持 JPG、PNG、WebP 格式','error'); return;
   }
-  if(file.size > 10*1024*1024){
-    showMsg('文件超过 10MB 限制','error'); return;
+  if(file.size > 4*1024*1024){
+    showMsg('文件超过 4MB 限制','error'); return;
   }
   originalFile = file;
   var reader = new FileReader();
@@ -391,65 +404,84 @@ function setProgress(pct, text, sub){
   if(sub)  loadingProgress.textContent = sub;
 }
 
+// ===== 图片转 Base64（去掉 data: URL 前缀） =====
+function fileToBase64(file){
+  return new Promise(function(resolve, reject){
+    var reader = new FileReader();
+    reader.onload = function(){
+      var base64 = reader.result.split(',')[1];
+      resolve(base64);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(file);
+  });
+}
+
 async function startProcessing(){
   if(!originalFile) return;
   loadingEl.classList.add('active');
   resultImage.style.display = 'none';
   downloadBtn.disabled = true;
-  setProgress(10,'正在加载引擎...','首次需下载约 40MB 模型');
 
   try {
-    if(!removeBg){
-      var imgly = window.BgRemover || window;
-      if(typeof imgly.removeBackground === 'function'){
-        removeBg = imgly.removeBackground;
-      } else if(typeof window.removeBackground === 'function'){
-        removeBg = window.removeBackground;
-      } else {
-        for(var k in window){
-          if(window[k] && typeof window[k].removeBackground === 'function'){
-            removeBg = window[k].removeBackground; break;
-          }
-        }
-        if(!removeBg){ await canvasMatting(originalFile); return; }
-      }
-    }
+    setProgress(15,'正在读取图片...','准备上传');
 
-    setProgress(30,'分析图片内容...','识别主体轮廓');
+    var imageBase64 = await fileToBase64(originalFile);
 
-    var processedBlob = await removeBg(originalFile, {
-      progress: function(key, current, total){
-        if(current && total) setProgress(30 + Math.round(current/total*50), null, null);
-      },
-      output: { format: 'image/png' }
+    setProgress(30,'上传到服务器...','调用阿里云 API');
+
+    var resp = await fetch(PROXY_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ image: imageBase64 })
     });
 
-    setProgress(85,'优化边缘细节...','');
+    if(!resp.ok){
+      var errData;
+      try { errData = await resp.json(); } catch(e) {}
+      throw new Error((errData && errData.error) || '处理失败 (HTTP ' + resp.status + ')');
+    }
 
-    if(!processedBlob || processedBlob.size === 0) throw new Error('处理未返回结果');
+    setProgress(70,'正在抠图...','阿里云 AI 识别主体');
 
-    setProgress(95,'即将完成...','');
+    // 获取结果图片
+    var blob = await resp.blob();
+    if(!blob || blob.size === 0) throw new Error('处理未返回结果');
 
-    resultBlob = processedBlob;
-    resultImage.src = URL.createObjectURL(processedBlob);
+    setProgress(90,'优化边缘...','');
+
+    resultBlob = blob;
+    resultImage.src = URL.createObjectURL(blob);
     resultImage.style.display = 'block';
     downloadBtn.disabled = false;
 
     setProgress(100,'完成！','');
-    setTimeout(function(){ loadingEl.classList.remove('active'); },500);
+    setTimeout(function(){ loadingEl.classList.remove('active'); }, 500);
 
     showMsg('处理完成，点击「下载 PNG」保存','success');
 
   } catch(err){
     console.error('Processing error:', err);
     loadingEl.classList.remove('active');
-    showMsg('处理失败：' + err.message,'error');
+
+    // 尝试后备方案：基础 Canvas 抠图
+    if(err.message.indexOf('fetch') === -1 && err.message.indexOf('connect') === -1){
+      showMsg('处理失败：' + err.message,'error');
+    } else {
+      showMsg('代理服务器未连接，使用基础算法...','info');
+      try {
+        await canvasMatting(originalFile);
+      } catch(e2) {
+        showMsg('所有方式均失败：' + e2.message,'error');
+      }
+    }
   }
 }
 
-async function canvasMatting(file){
-  return new Promise(function(resolve,reject){
-    setProgress(20,'使用基础算法处理...','');
+// ===== 基础 Canvas 抠图（后备） =====
+function canvasMatting(file){
+  return new Promise(function(resolve, reject){
+    setProgress(20,'使用基础算法处理...','效果有限');
     var img = new Image();
     img.onload = function(){
       var canvas = document.createElement('canvas');
@@ -478,11 +510,12 @@ async function canvasMatting(file){
           resultImage.style.display='block';downloadBtn.disabled=false;
           setProgress(100,'完成（基础模式）','');
           setTimeout(function(){loadingEl.classList.remove('active');},500);
-          showMsg('基础算法效果有限，建议刷新重试','info');resolve();
+          showMsg('基础算法效果有限，请启动代理服务获得更好的效果','info');
+          resolve();
         } else reject(new Error('生成失败'));
       },'image/png');
     };
-    img.onerror=function(){reject(new Error('加载失败'));};
+    img.onerror=function(){reject(new Error('图片加载失败'));};
     img.src=URL.createObjectURL(file);
   });
 }
@@ -507,10 +540,10 @@ function showMsg(text,type){
   messageEl.querySelector('i').className='fas '+iconMap[type||'info'];
   messageEl.querySelector('span').textContent=text;
   messageEl.className='msg '+(type||'info')+' active';
-  setTimeout(function(){ messageEl.classList.remove('active'); },5500);
+  setTimeout(function(){ messageEl.classList.remove('active'); }, 5500);
 }
 
-console.log('v7 ready - 简约白风格');
+console.log('v8 ready - 阿里云 API + 本地代理');
 })();
 </script>
 </body>
