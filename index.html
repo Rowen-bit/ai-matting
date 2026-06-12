@@ -3,817 +3,358 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>像素抠图工坊</title>
-<style>
-/* ===== PIXEL FONT ===== */
-@font-face {
-  font-family: 'PixelFont';
-  src: url('https://cdn.jsdelivr.net/gh/Rowen-bit/ai-matting@main/pixel-font.woff2') format('woff2');
-  font-display: swap;
-}
-
-/* ===== RESET & BASE ===== */
-*{margin:0;padding:0;box-sizing:border-box}
-html{overflow-x:hidden}
-
-body{
-  font-family:'PixelFont','Press Start 2P','Courier New',monospace;
-  background:#1a1a2e;
-  min-height:100vh;
-  color:#e0e0e0;
-  position:relative;
-  overflow-x:hidden;
-}
-
-/* ===== ANIMATED PIXEL BACKGROUND ===== */
-.pixel-bg{
-  position:fixed;top:0;left:0;width:100%;height:100%;
-  z-index:0;pointer-events:none;
-}
-.pixel-bg canvas{width:100%;height:100%}
-
-/* ===== SCANLINE EFFECT ===== */
-.scanlines{
-  position:fixed;top:0;left:0;width:100%;height:100%;
-  z-index:1;pointer-events:none;
-  background:repeating-linear-gradient(
-    0deg,transparent,transparent 2px,rgba(0,0,0,0.08) 2px,rgba(0,0,0,0.08) 4px
-  );
-}
-
-/* ===== MAIN LAYOUT ===== */
-.game-container{
-  position:relative;z-index:2;
-  max-width:860px;margin:0 auto;padding:1rem;
-}
-
-/* ===== TITLE BAR (pixel window frame) ===== */
-.title-bar{
-  background:#16213e;
-  border:4px solid #0f3460;
-  border-radius:0;
-  padding:0.6rem 1rem;
-  display:flex;align-items:center;gap:0.8rem;
-  box-shadow: 0 0 0 2px #533483, 0 0 20px rgba(83,52,131,0.4);
-  margin-bottom:1rem;
-}
-.title-bar .pixel-icon{
-  width:32px;height:32px;
-  display:inline-grid;grid-template-columns:repeat(8,1fr);grid-template-rows:repeat(8,1fr);
-  gap:0;
-}
-.title-bar h1{
-  font-size:0.95rem;
-  color:#e94560;
-  text-shadow:2px 2px 0 #533483;
-  letter-spacing:2px;
-}
-.title-bar .version{
-  font-size:0.55rem;color:#533483;margin-left:auto;
-}
-
-/* ===== HERO ===== */
-.hero{
-  text-align:center;
-  padding:1.5rem 0.5rem 1rem;
-}
-.hero h2{
-  font-size:1.1rem;
-  color:#00d2ff;
-  text-shadow:3px 3px 0 #0f3460;
-  margin-bottom:0.5rem;
-  animation:glow 2s ease-in-out infinite alternate;
-}
-@keyframes glow{
-  from{text-shadow:3px 3px 0 #0f3460,0 0 5px #00d2ff}
-  to{text-shadow:3px 3px 0 #0f3460,0 0 15px #00d2ff,0 0 30px #00d2ff}
-}
-.hero p{font-size:0.65rem;color:#533483;line-height:1.6}
-.hero .tag{
-  display:inline-block;
-  background:#0f3460;color:#00d2ff;
-  border:2px solid #533483;
-  padding:0.2rem 0.5rem;
-  font-size:0.55rem;
-  margin:0.2rem;
-}
-
-/* ===== PIXEL WINDOW PANEL ===== */
-.pixel-panel{
-  background:#16213e;
-  border:4px solid #0f3460;
-  box-shadow: 0 0 0 2px #533483, 6px 6px 0 rgba(0,0,0,0.5);
-  margin:1rem 0;
-  position:relative;
-}
-.pixel-panel .panel-header{
-  background:#0f3460;
-  border-bottom:4px solid #533483;
-  padding:0.5rem 1rem;
-  display:flex;align-items:center;gap:0.5rem;
-}
-.pixel-panel .panel-header .dot{
-  width:10px;height:10px;display:inline-block;
-}
-.pixel-panel .panel-header .dot.red{background:#e94560}
-.pixel-panel .panel-header .dot.yellow{background:#ffc947}
-.pixel-panel .panel-header .dot.green{background:#00d2ff}
-.pixel-panel .panel-header span{
-  font-size:0.6rem;color:#533483;margin-left:0.5rem;
-}
-.pixel-panel .panel-body{
-  padding:1.5rem;
-}
-
-/* ===== UPLOAD AREA ===== */
-.upload-area{
-  border:4px dashed #533483;
-  background:#1a1a2e;
-  padding:2.5rem 1rem;
-  text-align:center;
-  cursor:pointer;
-  transition:all 0.1s;
-  position:relative;
-}
-.upload-area:hover{
-  border-color:#e94560;
-  background:#16213e;
-  box-shadow:inset 0 0 30px rgba(233,69,96,0.15);
-}
-.upload-area.drag-over{
-  border-color:#00d2ff;
-  background:#0f3460;
-}
-.upload-pixel-art{
-  margin:0 auto 0.8rem;
-  width:64px;height:48px;
-  display:inline-grid;
-  grid-template-columns:repeat(8,1fr);grid-template-rows:repeat(6,1fr);
-}
-.upload-text{
-  font-size:0.7rem;color:#e94560;
-  text-shadow:1px 1px 0 #533483;
-  margin-bottom:0.4rem;
-}
-.upload-hint{
-  font-size:0.5rem;color:#533483;
-}
-#fileInput{display:none}
-
-/* ===== PIXEL MESSAGE ===== */
-.pixel-msg{
-  padding:0.5rem 0.8rem;
-  margin:0.6rem 0;
-  font-size:0.55rem;
-  line-height:1.6;
-  display:none;
-  border-left:4px solid;
-}
-.pixel-msg.active{display:block}
-.pixel-msg.success{
-  background:#0a2e1a;border-left-color:#00d2ff;color:#00d2ff;
-}
-.pixel-msg.error{
-  background:#2e0a0a;border-left-color:#e94560;color:#e94560;
-}
-.pixel-msg.info{
-  background:#0a1a2e;border-left-color:#533483;color:#ffc947;
-}
-
-/* ===== PREVIEW SECTION ===== */
-#previewSection{display:none}
-#previewSection.active{display:block}
-
-.preview-grid{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:1rem;
-  margin:1rem 0;
-}
-@media(max-width:600px){.preview-grid{grid-template-columns:1fr}}
-
-.preview-box .preview-label{
-  font-size:0.6rem;color:#00d2ff;
-  text-shadow:1px 1px 0 #0f3460;
-  margin-bottom:0.4rem;
-  display:flex;align-items:center;gap:0.3rem;
-}
-
-.image-frame{
-  background:#1a1a2e;
-  border:3px solid #0f3460;
-  box-shadow:inset 0 0 0 1px #533483;
-  min-height:200px;
-  display:flex;align-items:center;justify-content:center;
-  position:relative;
-  overflow:hidden;
-}
-.image-frame img{
-  max-width:100%;max-height:300px;object-fit:contain;
-}
-
-/* Checkerboard for transparency - pixel style */
-.result-frame{
-  background-image:
-    linear-gradient(45deg,#222 25%,transparent 25%),
-    linear-gradient(-45deg,#222 25%,transparent 25%),
-    linear-gradient(45deg,transparent 75%,#222 75%),
-    linear-gradient(-45deg,transparent 75%,#222 75%);
-  background-size:16px 16px;
-  background-position:0 0,0 8px,8px -8px,-8px 0px;
-  background-color:#1a1a2e;
-}
-
-/* ===== PIXEL LOADING ===== */
-.pixel-loading{
-  position:absolute;top:50%;left:50%;
-  transform:translate(-50%,-50%);
-  z-index:10;
-  display:none;
-  text-align:center;
-  background:rgba(26,26,46,0.95);
-  border:3px solid #533483;
-  padding:1rem;
-  min-width:220px;
-}
-.pixel-loading.active{display:block}
-
-.pixel-spinner{
-  width:48px;height:48px;
-  margin:0 auto 0.5rem;
-  display:inline-grid;
-  grid-template-columns:repeat(6,1fr);grid-template-rows:repeat(6,1fr);
-  gap:1px;
-  animation:pixelSpin 0.6s steps(4) infinite;
-}
-@keyframes pixelSpin{
-  0%{transform:rotate(0deg)}
-  100%{transform:rotate(360deg)}
-}
-
-.pixel-progress-bar{
-  width:180px;height:12px;
-  background:#1a1a2e;
-  border:2px solid #0f3460;
-  margin:0.5rem auto;
-  position:relative;
-  overflow:hidden;
-}
-.pixel-progress-fill{
-  height:100%;
-  background:#00d2ff;
-  transition:width 0.3s;
-  width:0%;
-  position:relative;
-}
-.pixel-progress-fill::after{
-  content:'';position:absolute;right:0;top:0;
-  width:4px;height:100%;
-  background:#e94560;
-  animation:blink 0.3s infinite;
-}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:0}}
-
-.pixel-loading-text{
-  font-size:0.55rem;color:#00d2ff;
-  text-shadow:1px 1px 0 #0f3460;
-  margin-top:0.3rem;
-}
-.pixel-loading-sub{
-  font-size:0.45rem;color:#533483;
-  margin-top:0.2rem;
-}
-
-/* ===== PIXEL BUTTONS ===== */
-.pixel-btn-group{
-  display:flex;gap:0.8rem;justify-content:center;flex-wrap:wrap;
-  margin-top:1rem;
-}
-.pixel-btn{
-  font-family:'PixelFont','Press Start 2P','Courier New',monospace;
-  font-size:0.6rem;
-  padding:0.6rem 1.2rem;
-  border:3px solid;
-  cursor:pointer;
-  transition:all 0.05s;
-  position:relative;
-  text-transform:uppercase;
-  letter-spacing:1px;
-}
-.pixel-btn:active{
-  transform:translate(2px,2px);
-  box-shadow:none !important;
-}
-.pixel-btn-primary{
-  background:#0f3460;color:#00d2ff;
-  border-color:#533483;
-  box-shadow:3px 3px 0 #533483;
-}
-.pixel-btn-primary:hover{
-  background:#533483;color:#ffc947;
-  border-color:#e94560;
-  box-shadow:3px 3px 0 #e94560;
-}
-.pixel-btn-primary:disabled{
-  opacity:0.4;cursor:not-allowed;
-  box-shadow:1px 1px 0 #533483;
-}
-.pixel-btn-secondary{
-  background:#1a1a2e;color:#533483;
-  border-color:#0f3460;
-  box-shadow:3px 3px 0 #0f3460;
-}
-.pixel-btn-secondary:hover{
-  background:#16213e;color:#e94560;
-  border-color:#e94560;
-  box-shadow:3px 3px 0 #e94560;
-}
-
-/* ===== PIXEL DECORATIONS ===== */
-.pixel-fire{
-  position:absolute;
-  bottom:-8px;left:50%;transform:translateX(-50%);
-  width:24px;height:16px;
-  animation:fireAnim 0.3s steps(3) infinite;
-}
-@keyframes fireAnim{
-  0%{opacity:0.7}
-  33%{opacity:1}
-  66%{opacity:0.5}
-  100%{opacity:0.8}
-}
-
-.pixel-stars{
-  position:fixed;top:0;left:0;width:100%;height:100%;
-  z-index:0;pointer-events:none;
-}
-
-/* ===== FOOTER ===== */
-.pixel-footer{
-  text-align:center;
-  padding:1rem;
-  font-size:0.45rem;
-  color:#533483;
-  border-top:3px solid #0f3460;
-  margin-top:1rem;
-}
-
-/* ===== RESPONSIVE ===== */
-@media(max-width:600px){
-  .game-container{padding:0.5rem}
-  .title-bar h1{font-size:0.75rem}
-  .hero h2{font-size:0.85rem}
-  .upload-area{padding:1.5rem 0.5rem}
-  .pixel-panel .panel-body{padding:1rem}
-  .pixel-btn{font-size:0.5rem;padding:0.5rem 0.8rem}
-}
-
-/* ===== PIXEL CURSOR EFFECT ===== */
-.cursor-pixel{
-  position:fixed;
-  width:8px;height:8px;
-  background:#e94560;
-  z-index:9999;
-  pointer-events:none;
-  mix-blend-mode:screen;
-  transition:left 0.05s,top 0.05s;
-}
-</style>
+<title>AI 智能抠图工具</title>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Microsoft YaHei',sans-serif;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);min-height:100vh;color:#333}
+.navbar{background:rgba(255,255,255,0.95);backdrop-filter:blur(10px);padding:0.8rem 1.5rem;box-shadow:0 2px 20px rgba(0,0,0,0.1);position:sticky;top:0;z-index:1000}
+.navbar-content{max-width:900px;margin:0 auto;display:flex;align-items:center;gap:1rem}
+.logo{font-size:1.4rem;font-weight:bold;color:#667eea;display:flex;align-items:center;gap:0.5rem}
+.logo i{font-size:1.6rem}
+.container{max-width:900px;margin:2rem auto;padding:0 1rem}
+.hero{text-align:center;color:white;padding:2rem 1rem}
+.hero h1{font-size:2.2rem;margin-bottom:0.5rem}
+.hero p{font-size:1.1rem;opacity:0.9}
+.hero .sub{font-size:0.85rem;margin-top:0.3rem;opacity:0.7}
+.upload-section{background:white;border-radius:16px;padding:2rem;box-shadow:0 20px 60px rgba(0,0,0,0.3);margin:1.5rem 0}
+.upload-area{border:3px dashed #667eea;border-radius:12px;padding:3rem 2rem;text-align:center;cursor:pointer;transition:all 0.3s;background:#f8f9ff}
+.upload-area:hover{border-color:#764ba2;background:#f0f2ff}
+.upload-area.drag-over{border-color:#764ba2;background:#e8ebff;transform:scale(1.01)}
+.upload-icon{font-size:3.5rem;color:#667eea;margin-bottom:0.8rem}
+.upload-text{font-size:1.1rem;color:#666;margin-bottom:0.3rem}
+.upload-hint{color:#999;font-size:0.85rem}
+#fileInput{display:none}
+.message{padding:0.8rem 1rem;border-radius:8px;margin:0.8rem 0;display:none;font-size:0.9rem;line-height:1.5}
+.message.active{display:block;animation:slideIn 0.3s}
+@keyframes slideIn{from{opacity:0;transform:translateY(-10px)}to{opacity:1;transform:translateY(0)}}
+.message.success{background:#d4edda;color:#155724;border:1px solid #c3e6cb}
+.message.error{background:#f8d7da;color:#721c24;border:1px solid #f5c6cb}
+.message.info{background:#d1ecf1;color:#0c5460;border:1px solid #bee5eb}
+.preview-section{display:none;background:white;border-radius:16px;padding:1.5rem;box-shadow:0 20px 60px rgba(0,0,0,0.3);margin:1.5rem 0}
+.preview-section.active{display:block;animation:fadeIn 0.4s}
+@keyframes fadeIn{from{opacity:0;transform:translateY(15px)}to{opacity:1;transform:translateY(0)}}
+.preview-container{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;margin:1.5rem 0}
+@media(max-width:700px){.preview-container{grid-template-columns:1fr}}
+.preview-box{text-align:center}
+.preview-box h3{margin-bottom:0.8rem;color:#667eea;font-size:1.1rem}
+.image-container{position:relative;background:#f5f5f5;border-radius:8px;overflow:hidden;min-height:250px;display:flex;align-items:center;justify-content:center}
+.preview-image{max-width:100%;max-height:350px;object-fit:contain}
+.result-image{background:linear-gradient(45deg,#ccc 25%,transparent 25%),linear-gradient(-45deg,#ccc 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#ccc 75%),linear-gradient(-45deg,transparent 75%,#ccc 75%);background-size:20px 20px;background-position:0 0,0 10px,10px -10px,-10px 0px}
+.loading{display:none;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);text-align:center;z-index:10;background:rgba(255,255,255,0.95);border-radius:10px;padding:1.5rem;min-width:260px;box-shadow:0 4px 20px rgba(0,0,0,0.15)}
+.loading.active{display:block}
+.spinner{width:40px;height:40px;border:4px solid #f3f3f3;border-top:4px solid #667eea;border-radius:50%;animation:spin 0.8s linear infinite;margin:0 auto}
+@keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+.loading-text{margin-top:0.7rem;color:#667eea;font-weight:600;font-size:0.95rem}
+.loading-progress{margin-top:0.4rem;font-size:0.8rem;color:#888}
+.progress-bar{width:200px;height:6px;background:#e0e0e0;border-radius:3px;margin:0.6rem auto 0;overflow:hidden}
+.progress-bar .fill{height:100%;background:linear-gradient(90deg,#667eea,#764ba2);border-radius:3px;transition:width 0.3s;width:0%}
+.button-group{display:flex;gap:0.8rem;justify-content:center;flex-wrap:wrap;margin-top:1.5rem}
+.btn{padding:0.7rem 1.4rem;border:none;border-radius:10px;font-size:0.9rem;font-weight:600;cursor:pointer;transition:all 0.2s;display:inline-flex;align-items:center;gap:0.5rem}
+.btn-primary{background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);color:white}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 6px 15px rgba(102,126,234,0.35)}
+.btn-primary:disabled{opacity:0.5;cursor:not-allowed;transform:none}
+.btn-secondary{background:#f0f0f0;color:#333}
+.btn-secondary:hover{background:#e0e0e0}
+.footer{text-align:center;color:white;padding:1.5rem;margin-top:2rem;font-size:0.85rem}
+@media(max-width:700px){.hero h1{font-size:1.5rem}.upload-section{padding:1rem}.preview-section{padding:1rem}.upload-area{padding:2rem 1rem}}
+</style>
 </head>
 <body>
 
-<!-- Animated pixel background -->
-<div class="pixel-bg"><canvas id="bgCanvas"></canvas></div>
-<div class="scanlines"></div>
+<nav class="navbar">
+<div class="navbar-content">
+<div class="logo"><i class="fas fa-cut"></i><span>AI智能抠图工具</span></div>
+</div>
+</nav>
 
-<!-- Pixel cursor follower -->
-<div class="cursor-pixel" id="cursorPixel"></div>
+<div class="container">
 
-<div class="game-container">
+<div class="hero">
+<h1>🎯 AI 智能抠图</h1>
+<p>上传图片，一键去除背景，下载透明 PNG</p>
+<p class="sub">浏览器端 AI 处理 · 图片不上传服务器 · 隐私安全</p>
+</div>
 
-  <!-- Title Bar -->
-  <div class="title-bar">
-    <!-- Pixel sword icon -->
-    <div class="pixel-icon" id="titleIcon"></div>
-    <h1>⚡ 像素抠图工坊 ⚡</h1>
-    <span class="version">v1.0</span>
-  </div>
+<div class="upload-section">
+<div class="upload-area" id="uploadArea">
+<div class="upload-icon"><i class="fas fa-cloud-upload-alt"></i></div>
+<div class="upload-text">点击或拖拽图片到此处上传</div>
+<div class="upload-hint">支持 JPG、PNG、WebP | 不超过 10MB</div>
+</div>
+<input type="file" id="fileInput" accept="image/jpeg,image/png,image/webp">
+<div class="message" id="message"></div>
+</div>
 
-  <!-- Hero -->
-  <div class="hero">
-    <h2>✦ AI 智能抠图 ✦</h2>
-    <p>上传图片 · 一键去背景 · 下载透明PNG</p>
-    <span class="tag">🔒 本地处理</span>
-    <span class="tag">🧠 AI引擎</span>
-    <span class="tag">⚡ 秒级完成</span>
-  </div>
-
-  <!-- Upload Panel -->
-  <div class="pixel-panel">
-    <div class="panel-header">
-      <span class="dot red"></span>
-      <span class="dot yellow"></span>
-      <span class="dot green"></span>
-      <span>UPLOAD.FILE</span>
-    </div>
-    <div class="panel-body">
-      <div class="upload-area" id="uploadArea">
-        <!-- Pixel upload icon drawn via grid -->
-        <div class="upload-pixel-art" id="uploadPixelIcon"></div>
-        <div class="upload-text">▶ 点击或拖拽上传图片 ▶</div>
-        <div class="upload-hint">JPG · PNG · WebP | ≤10MB</div>
-      </div>
-      <input type="file" id="fileInput" accept="image/jpeg,image/png,image/webp">
-      <div class="pixel-msg" id="message"></div>
-    </div>
-  </div>
-
-  <!-- Preview Panel -->
-  <div class="pixel-panel" id="previewSection">
-    <div class="panel-header">
-      <span class="dot red"></span>
-      <span class="dot yellow"></span>
-      <span class="dot green"></span>
-      <span>RESULT.VIEW</span>
-    </div>
-    <div class="panel-body">
-      <div class="preview-grid">
-        <div class="preview-box">
-          <div class="preview-label">◈ 原始图片</div>
-          <div class="image-frame">
-            <img id="originalImage" class="preview-image" alt="原始图片">
-          </div>
-        </div>
-        <div class="preview-box">
-          <div class="preview-label">◈ 抠图结果</div>
-          <div class="image-frame result-frame">
-            <!-- Pixel loading overlay -->
-            <div class="pixel-loading" id="loading">
-              <div class="pixel-spinner" id="pixelSpinner"></div>
-              <div class="pixel-loading-text" id="loadingText">正在准备AI模型...</div>
-              <div class="pixel-progress-bar"><div class="pixel-progress-fill" id="progressFill"></div></div>
-              <div class="pixel-loading-sub" id="loadingProgress">首次需下载~40MB模型</div>
-            </div>
-            <img id="resultImage" class="preview-image" alt="抠图结果" style="display:none;">
-          </div>
-        </div>
-      </div>
-      <div class="pixel-btn-group">
-        <button class="pixel-btn pixel-btn-primary" id="downloadBtn" disabled>▼ 下载PNG</button>
-        <button class="pixel-btn pixel-btn-secondary" id="resetBtn">↺ 重新选择</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Footer -->
-  <div class="pixel-footer">
-    © 2026 像素抠图工坊 · @imgly/background-removal · Made with ♥ and pixels
-  </div>
+<div class="preview-section" id="previewSection">
+<h2 style="text-align:center;color:#667eea;margin-bottom:0.8rem;font-size:1.2rem"><i class="fas fa-images"></i> 抠图预览</h2>
+<div class="preview-container">
+<div class="preview-box">
+<h3><i class="fas fa-image"></i> 原始图片</h3>
+<div class="image-container">
+<img id="originalImage" class="preview-image" alt="原始图片">
+</div>
+</div>
+<div class="preview-box">
+<h3><i class="fas fa-magic"></i> 抠图结果</h3>
+<div class="image-container">
+<div class="loading" id="loading">
+<div class="spinner"></div>
+<div class="loading-text" id="loadingText">正在准备 AI 模型...</div>
+<div class="loading-progress" id="loadingProgress">首次使用需要下载模型（约 40MB），请稍候...</div>
+<div class="progress-bar"><div class="fill" id="progressFill"></div></div>
+</div>
+<img id="resultImage" class="preview-image result-image" alt="抠图结果" style="display:none;">
+</div>
+</div>
+</div>
+<div class="button-group">
+<button class="btn btn-primary" id="downloadBtn" disabled><i class="fas fa-download"></i> 下载 PNG</button>
+<button class="btn btn-secondary" id="resetBtn"><i class="fas fa-redo"></i> 重新选择</button>
+</div>
+</div>
 
 </div>
+
+<footer class="footer">
+<p>© 2026 AI 智能抠图工具 · 基于 @imgly/background-removal</p>
+</footer>
 
 <script src="background-removal-bundle.js"></script>
 <script>
 (function(){
 'use strict';
 
-/* ===== PIXEL ART ICONS (inline data) ===== */
-// Sword icon (8x8)
-var swordPixels = [
-  0,0,0,0,0,0,1,0,
-  0,0,0,0,0,1,2,0,
-  0,0,0,0,1,2,0,0,
-  0,0,0,1,2,0,0,0,
-  0,0,1,2,0,0,0,0,
-  0,3,3,0,0,0,0,0,
-  0,0,3,0,0,0,0,0,
-  0,3,0,0,0,0,0,0
-];
-var iconColors = {0:'transparent',1:'#e94560',2:'#00d2ff',3:'#533483'};
-drawPixelGrid('titleIcon', swordPixels, iconColors, 4);
-
-// Upload icon (8x6)
-var uploadPixels = [
-  0,0,0,1,1,0,0,0,
-  0,0,1,2,2,1,0,0,
-  0,1,2,2,2,2,1,0,
-  0,0,0,3,3,0,0,0,
-  0,0,3,3,3,3,0,0,
-  3,3,3,3,3,3,3,3
-];
-var uploadColors = {0:'transparent',1:'#533483',2:'#00d2ff',3:'#e94560'};
-drawPixelGrid('uploadPixelIcon', uploadPixels, uploadColors, 6);
-
-// Spinner pixel art (6x6) - will be animated via CSS rotation
-var spinnerPixels = [
-  0,0,1,1,0,0,
-  0,0,0,1,0,0,
-  1,0,0,1,0,1,
-  1,1,1,1,1,1,
-  0,0,0,1,0,0,
-  0,0,1,1,0,0
-];
-var spinnerColors = {0:'transparent',1:'#00d2ff'};
-drawPixelGrid('pixelSpinner', spinnerPixels, spinnerColors, 8);
-
-function drawPixelGrid(containerId, pixelData, colorMap, cellSize){
-  var container = document.getElementById(containerId);
-  if(!container) return;
-  container.innerHTML = '';
-  for(var i=0;i<pixelData.length;i++){
-    var cell = document.createElement('div');
-    cell.style.background = colorMap[pixelData[i]] || 'transparent';
-    if(pixelData[i] !== 0){
-      cell.style.boxShadow = '1px 1px 0 rgba(0,0,0,0.5)';
-    }
-    container.appendChild(cell);
-  }
-}
-
-/* ===== ANIMATED PIXEL BACKGROUND ===== */
-var bgCanvas = document.getElementById('bgCanvas');
-var bgCtx = bgCanvas.getContext('2d');
-var pixelSize = 8;
-var bgCols, bgRows;
-var bgPixels = [];
-var animFrame;
-
-function initBg(){
-  bgCanvas.width = window.innerWidth;
-  bgCanvas.height = window.innerHeight;
-  bgCols = Math.ceil(bgCanvas.width / pixelSize);
-  bgRows = Math.ceil(bgCanvas.height / pixelSize);
-  bgPixels = [];
-  for(var r=0;r<bgRows;r++){
-    bgPixels[r] = [];
-    for(var c=0;c<bgCols;c++){
-      bgPixels[r][c] = {
-        brightness: Math.random() * 0.3,
-        target: Math.random() * 0.3,
-        speed: 0.005 + Math.random() * 0.01,
-        hue: Math.random() > 0.85 ? (Math.random() > 0.5 ? 340 : 195) : 240
-      };
-    }
-  }
-  animateBg();
-}
-
-function animateBg(){
-  bgCtx.clearRect(0,0,bgCanvas.width,bgCanvas.height);
-  for(var r=0;r<bgRows;r++){
-    for(var c=0;c<bgCols;c++){
-      var p = bgPixels[r][c];
-      // Slowly drift brightness toward target
-      if(Math.abs(p.brightness - p.target) > 0.01){
-        p.brightness += (p.target - p.brightness) * p.speed;
-      } else {
-        p.target = Math.random() * 0.3;
-      }
-      // Occasional sparkle
-      if(Math.random() < 0.0003){
-        p.brightness = 0.8;
-        p.target = 0.1;
-      }
-      var b = Math.floor(p.brightness * 255);
-      if(b < 5) continue; // skip nearly-black pixels
-      bgCtx.fillStyle = 'hsl(' + p.hue + ',60%,' + Math.min(b,80) + '%)';
-      bgCtx.fillRect(c * pixelSize, r * pixelSize, pixelSize, pixelSize);
-    }
-  }
-  animFrame = requestAnimationFrame(animateBg);
-}
-
-window.addEventListener('resize', function(){
-  cancelAnimationFrame(animFrame);
-  initBg();
-});
-initBg();
-
-/* ===== PIXEL CURSOR ===== */
-var cursorEl = document.getElementById('cursorPixel');
-document.addEventListener('mousemove', function(e){
-  cursorEl.style.left = e.clientX + 'px';
-  cursorEl.style.top = e.clientY + 'px';
-});
-
-/* ===== CORE APP LOGIC ===== */
 var $ = function(id){ return document.getElementById(id); };
-var uploadArea     = $('uploadArea');
-var fileInput      = $('fileInput');
+var uploadArea    = $('uploadArea');
+var fileInput     = $('fileInput');
 var previewSection = $('previewSection');
-var originalImage  = $('originalImage');
-var resultImage    = $('resultImage');
-var loadingEl      = $('loading');
-var loadingText    = $('loadingText');
-var loadingProgress= $('loadingProgress');
-var progressFill   = $('progressFill');
-var downloadBtn    = $('downloadBtn');
-var resetBtn       = $('resetBtn');
-var messageEl      = $('message');
+var originalImage = $('originalImage');
+var resultImage   = $('resultImage');
+var loadingEl     = $('loading');
+var loadingText   = $('loadingText');
+var loadingProgress = $('loadingProgress');
+var progressFill  = $('progressFill');
+var downloadBtn   = $('downloadBtn');
+var resetBtn      = $('resetBtn');
+var messageEl     = $('message');
 
 var originalFile = null;
 var resultBlob   = null;
 var removeBg     = null;
 
-// Upload handlers
+// ============ Upload ============
 uploadArea.addEventListener('click', function(e){
-  e.preventDefault();
-  fileInput.click();
+    e.preventDefault();
+    fileInput.click();
 });
 fileInput.addEventListener('change', function(e){
-  if(e.target.files[0]) handleFile(e.target.files[0]);
+    if(e.target.files[0]) handleFile(e.target.files[0]);
 });
 uploadArea.addEventListener('dragover', function(e){
-  e.preventDefault();
-  uploadArea.classList.add('drag-over');
+    e.preventDefault();
+    uploadArea.classList.add('drag-over');
 });
 uploadArea.addEventListener('dragleave', function(e){
-  e.preventDefault();
-  uploadArea.classList.remove('drag-over');
+    e.preventDefault();
+    uploadArea.classList.remove('drag-over');
 });
 uploadArea.addEventListener('drop', function(e){
-  e.preventDefault();
-  uploadArea.classList.remove('drag-over');
-  var file = e.dataTransfer.files[0];
-  if(file && file.type.startsWith('image/')) handleFile(file);
-  else showMsg('请选择图片文件！','error');
+    e.preventDefault();
+    uploadArea.classList.remove('drag-over');
+    var file = e.dataTransfer.files[0];
+    if(file && file.type.startsWith('image/')) handleFile(file);
+    else showMsg('请选择图片文件！','error');
 });
 
 function handleFile(file){
-  if(!file.type.match(/^image\/(jpeg|png|webp)$/)){
-    showMsg('仅支持 JPG/PNG/WebP 格式','error');
-    return;
-  }
-  if(file.size > 10*1024*1024){
-    showMsg('文件超过10MB限制！','error');
-    return;
-  }
-  originalFile = file;
-  var reader = new FileReader();
-  reader.onload = function(e){
-    originalImage.src = e.target.result;
-    previewSection.classList.add('active');
-    resultImage.style.display = 'none';
-    loadingEl.classList.remove('active');
-    showMsg('✦ 图片已上传，AI启动中...','info');
-    startProcessing();
-  };
-  reader.readAsDataURL(file);
-}
-
-function setProgress(pct, text, sub){
-  if(pct !== null) progressFill.style.width = pct + '%';
-  if(text) loadingText.textContent = text;
-  if(sub)  loadingProgress.textContent = sub;
-}
-
-async function startProcessing(){
-  if(!originalFile) return;
-  loadingEl.classList.add('active');
-  resultImage.style.display = 'none';
-  downloadBtn.disabled = true;
-  setProgress(10,'◈ 加载AI引擎...','首次需下载~40MB模型');
-
-  try {
-    if(!removeBg){
-      var imgly = window.BgRemover || window;
-      if(typeof imgly.removeBackground === 'function'){
-        removeBg = imgly.removeBackground;
-      } else if(typeof window.removeBackground === 'function'){
-        removeBg = window.removeBackground;
-      } else {
-        for(var k in window){
-          if(window[k] && typeof window[k].removeBackground === 'function'){
-            removeBg = window[k].removeBackground;
-            break;
-          }
-        }
-        if(!removeBg){
-          await canvasMatting(originalFile);
-          return;
-        }
-      }
+    if(!file.type.match(/^image\/(jpeg|png|webp)$/)){
+        showMsg('仅支持 JPG、PNG、WebP 格式','error');
+        return;
     }
-
-    setProgress(30,'◈ AI分析图片...','识别主体轮廓');
-
-    var processedBlob = await removeBg(originalFile, {
-      progress: function(key, current, total){
-        if(current && total){
-          var pct = Math.round(current/total*100);
-          setProgress(30 + pct*0.5, null, null);
-        }
-      },
-      output: { format: 'image/png' }
-    });
-
-    setProgress(80,'◈ 优化边缘...','');
-
-    if(!processedBlob || processedBlob.size === 0){
-      throw new Error('AI处理未返回结果');
+    if(file.size > 10*1024*1024){
+        showMsg('文件超过 10MB 限制！','error');
+        return;
     }
-
-    setProgress(95,'◈ 即将完成...','');
-
-    resultBlob = processedBlob;
-    var url = URL.createObjectURL(processedBlob);
-    resultImage.src = url;
-    resultImage.style.display = 'block';
-    downloadBtn.disabled = false;
-
-    setProgress(100,'✦ 完成！','');
-    setTimeout(function(){ loadingEl.classList.remove('active'); },600);
-
-    showMsg('✦ 抠图完成！点击「下载PNG」保存','success');
-  } catch(err){
-    console.error('Processing error:', err);
-    loadingEl.classList.remove('active');
-    showMsg('✗ 处理失败：' + err.message,'error');
-  }
-}
-
-async function canvasMatting(file){
-  return new Promise(function(resolve,reject){
-    setProgress(20,'◈ 基础抠图算法...','');
-    var img = new Image();
-    img.onload = function(){
-      var canvas = document.createElement('canvas');
-      canvas.width = img.width; canvas.height = img.height;
-      var ctx = canvas.getContext('2d');
-      ctx.drawImage(img,0,0);
-      var imageData = ctx.getImageData(0,0,img.width,img.height);
-      var data = imageData.data;
-
-      var samples = [
-        {x:0,y:0},{x:Math.floor(img.width/2),y:0},{x:img.width-1,y:0},
-        {x:0,y:Math.floor(img.height/2)},{x:img.width-1,y:Math.floor(img.height/2)},
-        {x:0,y:img.height-1},{x:Math.floor(img.width/2),y:img.height-1},{x:img.width-1,y:img.height-1}
-      ];
-      var rSum=0,gSum=0,bSum=0;
-      samples.forEach(function(s){
-        var idx=(s.y*img.width+s.x)*4;
-        rSum+=data[idx];gSum+=data[idx+1];bSum+=data[idx+2];
-      });
-      var bgR=rSum/samples.length, bgG=gSum/samples.length, bgB=bSum/samples.length;
-      var threshold=50;
-
-      for(var i=0;i<data.length;i+=4){
-        var dr=data[i]-bgR, dg=data[i+1]-bgG, db=data[i+2]-bgB;
-        var dist=Math.sqrt(dr*dr+dg*dg+db*db);
-        if(dist<threshold) data[i+3]=0;
-      }
-      ctx.putImageData(imageData,0,0);
-      canvas.toBlob(function(blob){
-        if(blob){
-          resultBlob=blob;
-          var url=URL.createObjectURL(blob);
-          resultImage.src=url;resultImage.style.display='block';
-          downloadBtn.disabled=false;
-          setProgress(100,'✦ 完成（基础模式）','');
-          setTimeout(function(){loadingEl.classList.remove('active');},600);
-          showMsg('⚠ 使用基础算法，效果有限。建议刷新重试AI模型','info');
-          resolve();
-        } else { reject(new Error('生成图片失败')); }
-      },'image/png');
+    originalFile = file;
+    var reader = new FileReader();
+    reader.onload = function(e){
+        originalImage.src = e.target.result;
+        previewSection.classList.add('active');
+        resultImage.style.display = 'none';
+        loadingEl.classList.remove('active');
+        showMsg('✅ 图片已上传，AI 正在自动处理...','info');
+        // 上传后立即开始处理
+        startProcessing();
     };
-    img.onerror=function(){reject(new Error('图片加载失败'));};
-    img.src=URL.createObjectURL(file);
-  });
+    reader.readAsDataURL(file);
 }
 
+// ============ Progress ============
+function setProgress(pct, text, sub){
+    if(pct !== null) progressFill.style.width = pct + '%';
+    if(text) loadingText.textContent = text;
+    if(sub)  loadingProgress.textContent = sub;
+}
+
+// ============ Core: Remove Background ============
+async function startProcessing(){
+    if(!originalFile) return;
+
+    loadingEl.classList.add('active');
+    resultImage.style.display = 'none';
+    downloadBtn.disabled = true;
+    setProgress(10,'🔄 正在加载 AI 模型...','首次使用需下载约 40MB 模型文件');
+
+    try {
+        // 获取 removeBackground 函数
+        if(!removeBg){
+            var imgly = window.BgRemover || window;
+            if(typeof imgly.removeBackground === 'function'){
+                removeBg = imgly.removeBackground;
+            } else if(typeof window.removeBackground === 'function'){
+                removeBg = window.removeBackground;
+            } else {
+                for(var k in window){
+                    if(window[k] && typeof window[k].removeBackground === 'function'){
+                        removeBg = window[k].removeBackground;
+                        break;
+                    }
+                }
+                if(!removeBg){
+                    await canvasMatting(originalFile);
+                    return;
+                }
+            }
+        }
+
+        setProgress(30,'🧠 AI 正在分析图片...','正在识别主体...');
+
+        var processedBlob = await removeBg(originalFile, {
+            progress: function(key, current, total){
+                var pct = current && total ? Math.round(current/total*100) : null;
+            },
+            output: { format: 'image/png' }
+        });
+
+        setProgress(80,'🎨 优化抠图边缘...','');
+
+        if(!processedBlob || processedBlob.size === 0){
+            throw new Error('AI 处理未返回结果');
+        }
+
+        setProgress(95,'✔️ 即将完成...','');
+
+        resultBlob = processedBlob;
+        var url = URL.createObjectURL(processedBlob);
+        resultImage.src = url;
+        resultImage.style.display = 'block';
+        downloadBtn.disabled = false;
+        downloadBtn.setAttribute('data-filename', 'AI抠图_' + Date.now() + '.png');
+
+        setProgress(100,'✅ 完成！','');
+        setTimeout(function(){ loadingEl.classList.remove('active'); },500);
+
+        showMsg('🎉 抠图完成！点击「下载 PNG」保存结果','success');
+
+    } catch(err){
+        console.error('Processing error:', err);
+        loadingEl.classList.remove('active');
+        showMsg('❌ 处理失败：' + err.message,'error');
+    }
+}
+
+// ============ Fallback: Pure Canvas Matting ============
+async function canvasMatting(file){
+    return new Promise(function(resolve,reject){
+        setProgress(20,'🎨 使用基础抠图算法...','');
+        var img = new Image();
+        img.onload = function(){
+            var canvas = document.createElement('canvas');
+            canvas.width = img.width;
+            canvas.height = img.height;
+            var ctx = canvas.getContext('2d');
+            ctx.drawImage(img, 0, 0);
+            var imageData = ctx.getImageData(0, 0, img.width, img.height);
+            var data = imageData.data;
+
+            var samples = [
+                {x:0,y:0}, {x:Math.floor(img.width/2),y:0}, {x:img.width-1,y:0},
+                {x:0,y:Math.floor(img.height/2)}, {x:img.width-1,y:Math.floor(img.height/2)},
+                {x:0,y:img.height-1}, {x:Math.floor(img.width/2),y:img.height-1}, {x:img.width-1,y:img.height-1}
+            ];
+            var rSum=0,gSum=0,bSum=0;
+            samples.forEach(function(s){
+                var idx = (s.y * img.width + s.x) * 4;
+                rSum += data[idx]; gSum += data[idx+1]; bSum += data[idx+2];
+            });
+            var bgR = rSum / samples.length, bgG = gSum / samples.length, bgB = bSum / samples.length;
+            var threshold = 50;
+
+            for(var i=0;i<data.length;i+=4){
+                var dr = data[i] - bgR, dg = data[i+1] - bgG, db = data[i+2] - bgB;
+                var dist = Math.sqrt(dr*dr + dg*dg + db*db);
+                if(dist < threshold) data[i+3] = 0;
+            }
+            ctx.putImageData(imageData, 0, 0);
+            canvas.toBlob(function(blob){
+                if(blob){
+                    resultBlob = blob;
+                    var url = URL.createObjectURL(blob);
+                    resultImage.src = url;
+                    resultImage.style.display = 'block';
+                    downloadBtn.disabled = false;
+                    downloadBtn.setAttribute('data-filename','AI抠图_'+Date.now()+'.png');
+                    setProgress(100,'✅ 完成（基础抠图）','');
+                    setTimeout(function(){ loadingEl.classList.remove('active'); },500);
+                    showMsg('⚠️ 使用基础抠图算法，效果有限。建议刷新页面重新加载 AI 模型','info');
+                    resolve();
+                } else {
+                    reject(new Error('生成图片失败'));
+                }
+            },'image/png');
+        };
+        img.onerror = function(){ reject(new Error('图片加载失败')); };
+        img.src = URL.createObjectURL(file);
+    });
+}
+
+// ============ Download & Reset ============
 downloadBtn.addEventListener('click', function(){
-  if(!resultBlob){ showMsg('没有可下载的文件！','error'); return; }
-  var url = URL.createObjectURL(resultBlob);
-  var a = document.createElement('a');
-  a.href = url;
-  a.download = '像素抠图_' + Date.now() + '.png';
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-  showMsg('✦ 下载成功！','success');
+    if(!resultBlob){ showMsg('没有可下载的文件！','error'); return; }
+    var url = URL.createObjectURL(resultBlob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = downloadBtn.getAttribute('data-filename') || ('AI抠图_'+Date.now()+'.png');
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+    showMsg('✅ 下载成功！','success');
 });
 
 resetBtn.addEventListener('click', function(){
-  fileInput.value='';
-  originalFile=null; resultBlob=null;
-  originalImage.src=''; resultImage.src='';
-  resultImage.style.display='none';
-  loadingEl.classList.remove('active');
-  downloadBtn.disabled=true;
-  previewSection.classList.remove('active');
-  messageEl.classList.remove('active');
-  window.scrollTo({top:0,behavior:'smooth'});
+    fileInput.value = '';
+    originalFile = null;
+    resultBlob = null;
+    originalImage.src = '';
+    resultImage.src = '';
+    resultImage.style.display = 'none';
+    loadingEl.classList.remove('active');
+    downloadBtn.disabled = true;
+    previewSection.classList.remove('active');
+    messageEl.classList.remove('active');
+    window.scrollTo({top:0,behavior:'smooth'});
 });
 
-function showMsg(text,type){
-  messageEl.textContent = text;
-  messageEl.className = 'pixel-msg ' + (type||'info') + ' active';
-  setTimeout(function(){ messageEl.classList.remove('active'); }, 6000);
+// ============ Utilities ============
+function showMsg(text, type){
+    messageEl.textContent = text;
+    messageEl.className = 'message ' + (type||'info') + ' active';
+    setTimeout(function(){ messageEl.classList.remove('active'); }, 6000);
 }
 
-console.log('✦ 像素抠图工坊 v1.0 ready');
+console.log('v6 ready - 精简版');
 })();
 </script>
 </body>
