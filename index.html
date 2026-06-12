@@ -7,11 +7,10 @@
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&display=swap" rel="stylesheet">
 <style>
-/* ===== 中世纪像素酒馆风�?===== */
+/* ===== 中世纪像素酒馆风格 ===== */
 *{margin:0;padding:0;box-sizing:border-box}
 
 :root{
-  /* 酒馆暗色�?*/
   --wood-dark:#1a0f0a;
   --wood-mid:#2d1f16;
   --wood-light:#4a3428;
@@ -38,7 +37,7 @@ body{
   background:#0d0806;
 }
 
-/* ===== 酒馆背景�?===== */
+/* ===== 酒馆背景图 ===== */
 .scene-bg{
   position:fixed;inset:0;z-index:-1;
   background:url('https://rowen-bit.github.io/ai-matting/background.png') center/cover no-repeat;
@@ -50,7 +49,7 @@ body{
   pointer-events:none;
 }
 
-/* ===== 主容�?===== */
+/* ===== 主容器 ===== */
 .main-wrap{
   position:relative;
   max-width:720px;
@@ -62,105 +61,28 @@ body{
   align-items:center;
 }
 
-/* ===== 悬挂式木质招�?===== */
+/* ===== 悬挂式木质招牌 ===== */
 .signboard-container{
   position:relative;
-  margin-top:1rem;
-  margin-bottom:2.25rem;
+  margin-top:0.8rem;
+  margin-bottom:1.8rem;
   text-align:center;
 }
 
-/* 悬挂绳索 */
 .signboard-container::before,
 .signboard-container::after{
   content:'';
   position:absolute;
-  top:-20px;
-  width:4px;
-  height:30px;
+  top:-16px;
+  width:3px;
+  height:24px;
   background:linear-gradient(90deg, #4a3428 0%, #6b4e3d 50%, #4a3428 100%);
   border-radius:2px;
 }
 .signboard-container::before{left:25%}
 .signboard-container::after{right:25%}
 
-/* 主招�?*/
-.signboard{
-  display:inline-block;
-  background:linear-gradient(180deg, var(--wood-light) 0%, var(--wood-mid) 50%, var(--wood-dark) 100%);
-  border:6px solid var(--wood-dark);
-  border-radius:4px;
-  padding:1rem 2.5rem;
-  position:relative;
-  box-shadow:
-    inset 0 2px 4px rgba(139,105,20,0.3),
-    inset 0 -2px 4px rgba(0,0,0,0.4),
-    0 8px 20px rgba(0,0,0,0.6);
-}
-
-/* 招牌木纹纹理 */
-.signboard::before{
-  content:'';
-  position:absolute;
-  inset:4px;
-  background:repeating-linear-gradient(
-    0deg,
-    transparent 0px,
-    transparent 8px,
-    rgba(0,0,0,0.1) 8px,
-    rgba(0,0,0,0.1) 9px
-  );
-  pointer-events:none;
-}
-
-/* 招牌边框装饰 */
-.signboard-border{
-  position:absolute;
-  inset:-2px;
-  border:2px solid var(--copper);
-  border-radius:2px;
-  pointer-events:none;
-}
-
-/* 藤蔓装饰 */
-.vine-left, .vine-right{
-  position:absolute;
-  top:-8px;
-  width:24px;
-  height:40px;
-  background:var(--vine-green);
-  border-radius:0 12px 0 12px;
-  box-shadow:inset -2px 2px 4px rgba(0,0,0,0.3);
-}
-.vine-left{left:-12px;transform:rotate(-15deg)}
-.vine-right{right:-12px;transform:rotate(15deg) scaleX(-1)}
-
-.vine-left::after, .vine-right::after{
-  content:'';
-  position:absolute;
-  bottom:-5px;
-  left:5px;
-  width:8px;
-  height:8px;
-  background:#6b9b7a;
-  border-radius:50%;
-}
-
-/* 招牌文字 */
-.signboard h1{
-  font-size:1.28rem;
-  color:var(--parchment);
-  text-shadow:
-    2px 2px 0 var(--wood-dark),
-    -1px -1px 0 var(--wood-dark),
-    1px -1px 0 var(--wood-dark),
-    -1px 1px 0 var(--wood-dark);
-  letter-spacing:6px;
-  position:relative;
-  z-index:1;
-}
-
-/* 招牌标题图片 */
+/* 招牌标题图片 - 原版1.2x系数 */
 .signboard-title{
   width:100%;
   max-width:768px;
@@ -168,65 +90,63 @@ body{
   display:block;
   position:relative;
   z-index:2;
-  filter:drop-shadow(0 8px 20px rgba(0,0,0,0.75)) drop-shadow(0 4px 12px rgba(0,0,0,0.5)) drop-shadow(0 0 10px rgba(212,168,75,0.3));
+  filter:drop-shadow(0 8px 16px rgba(0,0,0,0.7)) drop-shadow(0 4px 10px rgba(0,0,0,0.5)) drop-shadow(0 0 8px rgba(212,168,75,0.28));
 }
 
-/* ===== 历史记录按钮（小木牌�?===== */
+/* ===== 历史记录按钮（醒目琥珀色） ===== */
 .history-btn{
   position:fixed;
   top:1rem;
   right:1rem;
-  width:64px;
-  height:64px;
+  width:56px;
+  height:56px;
   background:linear-gradient(180deg, var(--amber) 0%, var(--amber-dark) 100%);
-  border:5px solid var(--wood-dark);
-  border-radius:6px;
-  font-size:1.28rem;
+  border:4px solid var(--wood-dark);
+  border-radius:5px;
+  font-size:1.4rem;
   cursor:pointer;
   z-index:100;
   box-shadow:
-    0 6px 0 #8b6914,
-    0 8px 18px rgba(0,0,0,0.55),
-    inset 0 2px 0 rgba(255,255,255,0.25),
-    0 0 15px rgba(212,168,75,0.35);
+    0 5px 0 #8b6914,
+    0 7px 15px rgba(0,0,0,0.52),
+    inset 0 2px 0 rgba(255,255,255,0.22),
+    0 0 12px rgba(212,168,75,0.32);
   display:flex;
   align-items:center;
   justify-content:center;
-  transition:transform 0.1s,box-shadow 0.2s;
+  transition:transform 0.15s,box-shadow 0.2s;
   animation:historyPulse 2.5s ease-in-out infinite;
 }
 .history-btn:hover{
   transform:scale(1.08);
   box-shadow:
-    0 6px 0 #8b6914,
-    0 10px 24px rgba(0,0,0,0.6),
-    inset 0 2px 0 rgba(255,255,255,0.3),
-    0 0 22px rgba(212,168,75,0.5);
+    0 5px 0 #8b6914,
+    0 9px 20px rgba(0,0,0,0.58),
+    inset 0 2px 0 rgba(255,255,255,0.28),
+    0 0 18px rgba(212,168,75,0.48);
 }
 .history-btn:active{
   transform:translateY(4px) scale(1);
   box-shadow:0 2px 0 #8b6914, inset 0 2px 4px rgba(0,0,0,0.4);
 }
 @keyframes historyPulse{
-  0%,100%{box-shadow:0 6px 0 #8b6914,0 8px 18px rgba(0,0,0,0.55),inset 0 2px 0 rgba(255,255,255,0.25),0 0 15px rgba(212,168,75,0.35)}
-  50%{box-shadow:0 6px 0 #8b6914,0 8px 18px rgba(0,0,0,0.55),inset 0 2px 0 rgba(255,255,255,0.25),0 0 24px rgba(212,168,75,0.55)}
+  0%,100%{box-shadow:0 5px 0 #8b6914,0 7px 15px rgba(0,0,0,0.52),inset 0 2px 0 rgba(255,255,255,0.22),0 0 12px rgba(212,168,75,0.32)}
+  50%{box-shadow:0 5px 0 #8b6914,0 7px 15px rgba(0,0,0,0.52),inset 0 2px 0 rgba(255,255,255,0.22),0 0 20px rgba(212,168,75,0.52)}
 }
 
-/* ===== 长条形木板容�?===== */
+/* ===== 长条形木板容器 ===== */
 .wooden-plank{
   width:100%;
   background:linear-gradient(180deg, var(--wood-mid) 0%, var(--wood-dark) 100%);
-  border:6px solid var(--wood-dark);
-  border-radius:3px;
+  border:5px solid var(--wood-dark);
+  border-radius:2px;
   padding:1.8rem;
   position:relative;
   box-shadow:
-    0 9px 0 rgba(0,0,0,0.4),
-    0 12px 30px rgba(0,0,0,0.5),
-    inset 0 1.5px 0 rgba(107,78,61,0.3);
+    0 7px 0 rgba(0,0,0,0.4),
+    0 10px 24px rgba(0,0,0,0.5),
+    inset 0 1px 0 rgba(107,78,61,0.3);
 }
-
-/* 木板纹理 */
 .wooden-plank::before{
   content:'';
   position:absolute;
@@ -240,8 +160,6 @@ body{
   );
   pointer-events:none;
 }
-
-/* 木板边缘高光 */
 .wooden-plank::after{
   content:'';
   position:absolute;
@@ -255,21 +173,19 @@ body{
 .tavern-btn{
   display:block;
   width:100%;
-  padding:1.35rem 1.5rem;
+  padding:1.08rem 1.2rem;
   font-family:inherit;
   font-size:1.2rem;
-  border:6px solid var(--wood-dark);
-  border-radius:3px;
+  border:5px solid var(--wood-dark);
+  border-radius:2px;
   cursor:pointer;
   text-align:center;
   position:relative;
   font-weight:bold;
   transition:all 0.1s;
-  text-shadow:1.5px 1.5px 0 rgba(0,0,0,0.4);
-  box-shadow:0 6px 0 rgba(0,0,0,0.4);
+  text-shadow:1px 1px 0 rgba(0,0,0,0.4);
+  box-shadow:0 5px 0 rgba(0,0,0,0.4);
 }
-
-/* 主按�?- 琥珀�?*/
 .tavern-btn-primary{
   background:linear-gradient(180deg, var(--amber) 0%, var(--amber-dark) 100%);
   color:var(--text-dark);
@@ -279,11 +195,9 @@ body{
   background:linear-gradient(180deg, #e0b85c 0%, #c99e4a 100%);
 }
 .tavern-btn-primary:active{
-  transform:translateY(4px);
+  transform:translateY(5px);
   box-shadow:0 0 0 rgba(0,0,0,0.4);
 }
-
-/* 次要按钮 - 铁灰�?*/
 .tavern-btn-secondary{
   background:linear-gradient(180deg, #5a5a5a 0%, #3d3d3d 100%);
   color:var(--parchment);
@@ -293,11 +207,9 @@ body{
   background:linear-gradient(180deg, #6a6a6a 0%, #4d4d4d 100%);
 }
 .tavern-btn-secondary:active{
-  transform:translateY(4px);
+  transform:translateY(5px);
   box-shadow:0 0 0 rgba(0,0,0,0.4);
 }
-
-/* 危险按钮 - 暗红�?*/
 .tavern-btn-danger{
   background:linear-gradient(180deg, #8b4513 0%, #5a2d0c 100%);
   color:var(--parchment);
@@ -307,10 +219,9 @@ body{
   background:linear-gradient(180deg, #a05018 0%, #6b3510 100%);
 }
 .tavern-btn-danger:active{
-  transform:translateY(4px);
+  transform:translateY(5px);
   box-shadow:0 0 0 rgba(0,0,0,0.4);
 }
-
 .tavern-btn:disabled{
   opacity:0.5;
   cursor:not-allowed;
@@ -319,9 +230,9 @@ body{
 
 /* ===== 上传区域 ===== */
 .upload-area{
-  border:4.5px dashed var(--wood-glow);
-  border-radius:3px;
-  padding:3.75rem 1.5rem;
+  border:4px dashed var(--wood-glow);
+  border-radius:2px;
+  padding:3rem 1.2rem;
   text-align:center;
   cursor:pointer;
   background:repeating-linear-gradient(
@@ -332,50 +243,45 @@ body{
   transition:all 0.15s;
   position:relative;
 }
-
 .upload-area:hover{
   border-color:var(--amber);
   background:rgba(212,168,75,0.1);
 }
-
 .upload-area.drag-over{
   border-color:var(--forge-orange);
   background:rgba(193,127,36,0.15);
 }
-
 .upload-icon{
   font-size:3rem;
-  margin-bottom:0.9rem;
-  filter:drop-shadow(3px 3px 3px rgba(0,0,0,0.5));
+  margin-bottom:0.72rem;
+  filter:drop-shadow(2px 2px 2px rgba(0,0,0,0.5));
 }
 .upload-text{
-  font-size:1.65rem;
+  font-size:1.32rem;
   color:var(--parchment);
-  margin-bottom:0.6rem;
+  margin-bottom:0.48rem;
   font-weight:bold;
-  text-shadow:1.5px 1.5px 3px rgba(0,0,0,0.8);
+  text-shadow:1px 1px 2px rgba(0,0,0,0.8);
 }
 .upload-hint{
-  font-size:1.2rem;
+  font-size:0.96rem;
   color:var(--parchment-dark);
 }
-
 #fileInput{display:none}
 
 /* ===== 消息提示 ===== */
 .msg{
   display:none;
-  padding:0.8rem 1rem;
-  font-size:0.9rem;
+  padding:0.96rem 1.2rem;
+  font-size:1.08rem;
   border-radius:2px;
-  margin-top:0.8rem;
+  margin-top:0.96rem;
   border:2px solid;
   font-weight:bold;
   text-align:center;
 }
 .msg.active{display:block;animation:msgFade 0.3s ease-out}
 @keyframes msgFade{0%{opacity:0;transform:translateY(-10px)}100%{opacity:1;transform:translateY(0)}}
-
 .msg.success{
   background:rgba(106,176,76,0.15);
   border-color:#4a8a2c;
@@ -396,38 +302,32 @@ body{
 .preview-section{display:none}
 .preview-section.active{display:block;animation:slideUp 0.4s ease-out}
 @keyframes slideUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
-
 .section-title{
   text-align:center;
-  font-size:1.65rem;
+  font-size:1.32rem;
   color:var(--parchment);
-  margin:0 0 1.5rem;
+  margin:0 0 1.2rem;
   font-weight:bold;
-  text-shadow:1.5px 1.5px 3px rgba(0,0,0,0.8);
+  text-shadow:1px 1px 2px rgba(0,0,0,0.8);
   position:relative;
   z-index:1;
 }
-
 .preview-grid{
   display:grid;
   grid-template-columns:1fr 1fr;
-  gap:1.5rem;
+  gap:1.2rem;
   position:relative;
   z-index:1;
 }
-
-@media(max-width:520px){.preview-grid{grid-template-columns:1fr}}
-
+@media(max-width:600px){.preview-grid{grid-template-columns:1fr}}
 .preview-card{
   background:linear-gradient(180deg, var(--wood-mid) 0%, var(--wood-dark) 100%);
-  border:4.5px solid var(--wood-dark);
-  border-radius:3px;
+  border:4px solid var(--wood-dark);
+  border-radius:2px;
   overflow:hidden;
-  box-shadow:0 6px 0 rgba(0,0,0,0.4), inset 0 1.5px 0 rgba(107,78,61,0.2);
+  box-shadow:0 5px 0 rgba(0,0,0,0.4), inset 0 1px 0 rgba(107,78,61,0.2);
   position:relative;
 }
-
-/* 卡片木纹 */
 .preview-card::before{
   content:'';
   position:absolute;
@@ -442,20 +342,18 @@ body{
   pointer-events:none;
   z-index:1;
 }
-
 .card-label{
-  font-size:1.2rem;
+  font-size:0.96rem;
   font-weight:bold;
   color:var(--parchment);
-  padding:0.75rem;
+  padding:0.6rem;
   text-align:center;
-  border-bottom:3px solid var(--wood-dark);
+  border-bottom:2px solid var(--wood-dark);
   background:linear-gradient(180deg, rgba(212,168,75,0.2) 0%, rgba(212,168,75,0.05) 100%);
   position:relative;
   z-index:1;
-  text-shadow:1.5px 1.5px 1.5px rgba(0,0,0,0.5);
+  text-shadow:1px 1px 1px rgba(0,0,0,0.5);
 }
-
 .image-frame{
   min-height:336px;
   display:flex;
@@ -465,18 +363,15 @@ body{
   background:var(--wood-dark);
   position:relative;
 }
-
 .image-frame img{
   max-width:100%;
   max-height:432px;
   object-fit:contain;
-  border-radius:3px;
-  box-shadow:0 3px 12px rgba(0,0,0,0.4);
+  border-radius:2px;
+  box-shadow:0 2px 8px rgba(0,0,0,0.4);
   position:relative;
   z-index:1;
 }
-
-/* 透明背景棋盘�?*/
 .result-frame{
   background-image:
     linear-gradient(45deg, #2d1f16 25%, transparent 25%),
@@ -497,16 +392,14 @@ body{
   flex-direction:column;
   align-items:center;
   justify-content:center;
-  gap:0.6rem;
+  gap:0.48rem;
   z-index:10;
 }
 .loading-overlay.active{display:flex}
-
-/* 铁锤敲击动画 */
 .loader-icon{
-  font-size:3.3rem;
+  font-size:2.64rem;
   animation:hammerStrike 0.8s ease-in-out infinite;
-  filter:drop-shadow(3px 3px 3px rgba(0,0,0,0.5));
+  filter:drop-shadow(2px 2px 2px rgba(0,0,0,0.5));
 }
 @keyframes hammerStrike{
   0%,100%{transform:translateY(0) rotate(0)}
@@ -514,27 +407,24 @@ body{
   50%{transform:translateY(0) rotate(0)}
   75%{transform:translateY(-4px) rotate(10deg)}
 }
-
 .loading-text{
-  font-size:1.42rem;
+  font-size:1.14rem;
   color:var(--parchment);
   font-weight:bold;
-  text-shadow:1.5px 1.5px 3px rgba(0,0,0,0.8);
+  text-shadow:1px 1px 2px rgba(0,0,0,0.8);
 }
 .loading-sub{
-  font-size:1.2rem;
+  font-size:0.96rem;
   color:var(--parchment-dark);
 }
-
-/* 进度�?- 熔炉风格 */
 .progress-track{
-  width:270px;
-  height:18px;
+  width:216px;
+  height:15px;
   background:var(--wood-dark);
-  border:3px solid var(--wood-light);
-  border-radius:3px;
+  border:2px solid var(--wood-light);
+  border-radius:2px;
   overflow:hidden;
-  box-shadow:inset 0 3px 6px rgba(0,0,0,0.5);
+  box-shadow:inset 0 2px 4px rgba(0,0,0,0.5);
 }
 .progress-fill{
   height:100%;
@@ -545,13 +435,13 @@ body{
   box-shadow:0 0 8px rgba(212,168,75,0.5);
 }
 
-/* ===== 按钮�?===== */
+/* ===== 按钮组 ===== */
 .btn-group{
   display:flex;
-  gap:1.2rem;
+  gap:0.96rem;
   justify-content:center;
   flex-wrap:wrap;
-  margin-top:1.8rem;
+  margin-top:1.44rem;
   width:100%;
   position:relative;
   z-index:1;
@@ -565,11 +455,11 @@ body{
 /* ===== 底部 ===== */
 .footer{
   text-align:center;
-  padding:1.8rem 1.5rem;
-  font-size:1.2rem;
+  padding:1.8rem 1.2rem;
+  font-size:0.96rem;
   color:var(--parchment-dark);
   margin-top:auto;
-  text-shadow:1.5px 1.5px 3px rgba(0,0,0,0.8);
+  text-shadow:1px 1px 2px rgba(0,0,0,0.8);
 }
 
 /* ===== 历史面板 ===== */
@@ -583,64 +473,61 @@ body{
   transition:opacity 0.2s;
 }
 .history-overlay.active{opacity:1;pointer-events:auto}
-
 .history-panel{
   position:fixed;
   top:0;
-  right:-360px;
-  width:320px;
+  right:-384px;
+  width:384px;
   max-width:90vw;
   height:100vh;
   background:linear-gradient(180deg, var(--wood-mid) 0%, var(--wood-dark) 100%);
-  border-left:4px solid var(--wood-dark);
-  box-shadow:-6px 0 0 rgba(0,0,0,0.4), -10px 0 30px rgba(0,0,0,0.6);
+  border-left:5px solid var(--wood-dark);
+  box-shadow:-7px 0 0 rgba(0,0,0,0.4), -12px 0 36px rgba(0,0,0,0.6);
   z-index:2001;
   display:flex;
   flex-direction:column;
   transition:right 0.3s ease-out;
 }
 .history-panel.active{right:0}
-
 .history-header{
   display:flex;
   align-items:center;
   justify-content:space-between;
-  padding:1rem;
-  border-bottom:3px solid var(--wood-dark);
+  padding:1.2rem;
+  border-bottom:4px solid var(--wood-dark);
   background:linear-gradient(180deg, rgba(212,168,75,0.2) 0%, rgba(212,168,75,0.05) 100%);
 }
 .history-title{
-  font-size:1.1rem;
+  font-size:1.32rem;
   color:var(--parchment);
   font-weight:bold;
   text-shadow:1px 1px 2px rgba(0,0,0,0.8);
 }
 .history-close{
-  width:36px;
-  height:36px;
+  width:43px;
+  height:43px;
   background:linear-gradient(180deg, var(--amber-dark), var(--forge-red));
   border:3px solid var(--wood-dark);
   border-radius:2px;
   color:var(--parchment);
-  font-size:1rem;
+  font-size:1.2rem;
   cursor:pointer;
-  box-shadow:0 3px 0 rgba(0,0,0,0.4);
+  box-shadow:0 4px 0 rgba(0,0,0,0.4);
   display:flex;
   align-items:center;
   justify-content:center;
 }
 .history-close:active{
-  transform:translateY(3px);
+  transform:translateY(4px);
   box-shadow:0 0 0 rgba(0,0,0,0.4);
 }
-
 .history-list{
   flex:1;
   overflow-y:auto;
-  padding:1rem;
+  padding:1.2rem;
   display:flex;
   flex-direction:column;
-  gap:0.6rem;
+  gap:0.72rem;
 }
 .history-empty{
   flex:1;
@@ -649,34 +536,32 @@ body{
   align-items:center;
   justify-content:center;
   color:var(--parchment-dark);
-  gap:0.6rem;
+  gap:0.48rem;
   text-align:center;
-  font-size:0.95rem;
+  font-size:0.96rem;
 }
 .history-empty-icon{
-  font-size:2.8rem;
+  font-size:3.36rem;
   opacity:0.5;
 }
-
 .history-item{
   background:linear-gradient(180deg, var(--wood-mid) 0%, var(--wood-dark) 100%);
   border:2px solid var(--wood-dark);
   border-radius:2px;
-  padding:0.7rem;
+  padding:0.84rem;
   display:flex;
-  gap:0.6rem;
+  gap:0.72rem;
   align-items:center;
   cursor:pointer;
-  box-shadow:0 3px 0 rgba(0,0,0,0.4);
+  box-shadow:0 4px 0 rgba(0,0,0,0.4);
 }
 .history-item:hover{
   border-color:var(--amber);
   background:linear-gradient(180deg, #3d2a20 0%, #2a1a12 100%);
 }
-
 .history-thumb{
-  width:52px;
-  height:52px;
+  width:62px;
+  height:62px;
   object-fit:cover;
   border:2px solid var(--wood-dark);
   border-radius:2px;
@@ -687,29 +572,28 @@ body{
   min-width:0;
 }
 .history-name{
-  font-size:0.8rem;
+  font-size:0.96rem;
   color:var(--parchment);
   word-break:break-all;
   font-weight:bold;
   text-shadow:1px 1px 1px rgba(0,0,0,0.5);
 }
 .history-time{
-  font-size:0.7rem;
+  font-size:0.84rem;
   color:var(--parchment-dark);
-  margin-top:3px;
+  margin-top:3.6px;
 }
-
 .history-actions{
   display:flex;
-  gap:0.35rem;
+  gap:0.28rem;
   flex-shrink:0;
 }
 .h-act{
-  width:32px;
-  height:32px;
+  width:38px;
+  height:38px;
   border:2px solid var(--wood-dark);
   border-radius:2px;
-  font-size:0.8rem;
+  font-size:0.96rem;
   cursor:pointer;
   display:flex;
   align-items:center;
@@ -730,16 +614,15 @@ body{
   border-color:var(--forge-red);
   color:#e74c3c;
 }
-
 .history-footer{
-  padding:1rem;
-  border-top:3px solid var(--wood-dark);
+  padding:1.2rem;
+  border-top:4px solid var(--wood-dark);
   background:linear-gradient(180deg, rgba(212,168,75,0.2) 0%, rgba(212,168,75,0.05) 100%);
   display:flex;
   justify-content:flex-end;
 }
 
-/* 滚动�?- 酒馆风格 */
+/* 滚动条 */
 ::-webkit-scrollbar{width:10px}
 ::-webkit-scrollbar-track{
   background:var(--wood-dark);
@@ -754,21 +637,21 @@ body{
   background:var(--wood-glow);
 }
 
-/* ===== 响应�?===== */
-@media(max-width:780px){
-  .signboard h1{font-size:1.95rem;letter-spacing:6px}
+/* ===== 响应式 ===== */
+@media(max-width:624px){
+  .signboard h1{font-size:1.56rem;letter-spacing:4.8px}
   .signboard-title{max-width:512px}
-  .signboard{padding:1.2rem 2.25rem}
-  .main-wrap{max-width:100%;padding:1rem}
+  .signboard{padding:0.96rem 1.8rem}
+  .main-wrap{max-width:100%;padding:0.8rem}
   .wooden-plank{padding:1.2rem}
-  .upload-area{padding:1.8rem 0.75rem}
+  .upload-area{padding:2.4rem 0.6rem}
   .history-panel{width:100vw;max-width:100vw}
-  .btn-group .tavern-btn{min-width:180px;font-size:1.35rem}
-  .vine-left, .vine-right{width:27px;height:45px}
-  .image-frame{min-height:300px;padding:0.9rem}
-  .image-frame img{max-height:360px}
-  .upload-icon{font-size:2.8rem}
-  .upload-text{font-size:1.24rem}
+  .btn-group .tavern-btn{min-width:144px;font-size:1.08rem}
+  .vine-left, .vine-right{width:21.6px;height:36px}
+  .image-frame{min-height:240px;padding:0.72rem}
+  .image-frame img{max-height:288px}
+  .upload-icon{font-size:2.4rem}
+  .upload-text{font-size:1.06rem}
 }
 </style>
 </head>
@@ -780,18 +663,18 @@ body{
 <!-- 历史记录按钮 -->
 <button class="history-btn" id="historyBtn" title="历史记录">📜</button>
 
-<!-- 主内�?-->
+<!-- 主内容 -->
 <div class="main-wrap">
 
-  <!-- 悬挂式木质招�?-->
+  <!-- 悬挂式木质招牌 -->
   <div class="signboard-container">
     <img src="biaoti.png" alt="抠图工坊" class="signboard-title">
   </div>
 
   <!-- 上传面板 -->
-  <div class="wooden-plank" style="margin-bottom:1rem">
+  <div class="wooden-plank" style="margin-bottom:1.2rem">
     <div class="upload-area" id="uploadArea">
-      <div class="upload-icon">🖼�?/div>
+      <div class="upload-icon">🖼️</div>
       <div class="upload-text">点击选择或拖拽图片到此处</div>
       <div class="upload-hint">支持 JPG、PNG、WebP 格式 · 大图自动压缩</div>
     </div>
@@ -802,7 +685,7 @@ body{
   <!-- 预览区域 -->
   <div class="preview-section" id="previewSection">
     <div class="wooden-plank">
-      <div class="section-title">�?处理结果</div>
+      <div class="section-title">✨ 处理结果</div>
       <div class="preview-grid">
         <div class="preview-card">
           <div class="card-label">📷 原图</div>
@@ -826,13 +709,14 @@ body{
           💾 保存成果
         </button>
         <button class="tavern-btn tavern-btn-secondary" id="resetBtn">
-          🔄 重新开�?        </button>
+          🔄 重新开始
+        </button>
       </div>
     </div>
   </div>
 
   <footer class="footer">
-    🔥 基于阿里云分割接�?· 抠图工坊 2026
+    🔥 基于阿里云分割接口 · 抠图工坊 2026
   </footer>
 
 </div>
@@ -842,7 +726,7 @@ body{
 <div class="history-panel" id="historyPanel">
   <div class="history-header">
     <span class="history-title">📜 工坊记录</span>
-    <button class="history-close" id="historyClose">�?/button>
+    <button class="history-close" id="historyClose">✕</button>
   </div>
   <div class="history-list" id="historyList">
     <div class="history-empty" id="historyEmpty">
@@ -852,8 +736,8 @@ body{
     </div>
   </div>
   <div class="history-footer">
-    <button class="tavern-btn tavern-btn-danger" id="historyClearBtn" style="font-size:0.85rem;padding:0.5rem 1rem;width:auto">
-      🗑�?清空记录
+    <button class="tavern-btn tavern-btn-danger" id="historyClearBtn" style="font-size:1.02rem;padding:0.6rem 1.2rem;width:auto">
+      🗑️ 清空记录
     </button>
   </div>
 </div>
@@ -884,14 +768,14 @@ uploadArea.addEventListener('drop',function(e){
 });
 
 function handleFile(file){
-  if(!file.type.match(/^image\/(jpeg|png|webp)$/)){showMsg('仅支�?JPG、PNG、WebP 格式','error');return}
+  if(!file.type.match(/^image\/(jpeg|png|webp)$/)){showMsg('仅支持 JPG、PNG、WebP 格式','error');return}
   originalFile=file;
   var r=new FileReader();
   r.onload=function(e){
     originalImage.src=e.target.result;
     previewSection.classList.add('active');
     resultImage.style.display='none';loadingEl.classList.remove('active');
-    showMsg('图片已加载，开始锻�?..','info');
+    showMsg('图片已加载，开始锻造...','info');
     startProcessing();
   };
   r.readAsDataURL(file);
@@ -927,17 +811,17 @@ async function startProcessing(){
   try{
     setProgress(15,'正在淬炼图片...','调整尺寸');
     var b64=await compressToBase64(originalFile);
-    setProgress(30,'正在连接工坊...','发送请�?);
+    setProgress(30,'正在连接工坊...','发送请求');
     var resp=await fetch(PROXY_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({image:b64})});
-    if(!resp.ok){var ed;try{ed=await resp.json()}catch(e){}throw new Error((ed&&ed.error)||'请求失败 (状�?'+resp.status+')')}
+    if(!resp.ok){var ed;try{ed=await resp.json()}catch(e){}throw new Error((ed&&ed.error)||'请求失败 (状态 '+resp.status+')')}
     setProgress(70,'正在精密切割...','AI锻造中');
     var blob=await resp.blob();
-    if(!blob||blob.size===0)throw new Error('未获得处理结�?);
-    setProgress(90,'打磨边缘�?..','');
+    if(!blob||blob.size===0)throw new Error('未获得处理结果');
+    setProgress(90,'打磨边缘中...','');
     resultBlob=blob;resultImage.src=URL.createObjectURL(blob);resultImage.style.display='block';
     downloadBtn.disabled=false;setProgress(100,'锻造完成！','');
     setTimeout(function(){loadingEl.classList.remove('active')},500);
-    showMsg('处理成功！点击「保存成果」下�?,'success');
+    showMsg('处理成功！点击「保存成果」下载','success');
     if(window.addMattingHistory)window.addMattingHistory(resultImage.src);
   }catch(err){
     console.error(err);loadingEl.classList.remove('active');
@@ -974,7 +858,7 @@ async function startProcessing(){
     e.style.display='none';
     list.forEach(function(item){
       var el=document.createElement('div');el.className='history-item';
-      el.innerHTML='<img class="history-thumb" src="'+item.thumb+'"><div class="history-info"><div class="history-name">'+esc(item.name)+'</div><div class="history-time">'+esc(item.time)+'</div></div><div class="history-actions"><button class="h-act dl" title="下载">�?/button><button class="h-act pv" title="预览">👁</button><button class="h-act del" title="删除">�?/button></div>';
+      el.innerHTML='<img class="history-thumb" src="'+item.thumb+'"><div class="history-info"><div class="history-name">'+esc(item.name)+'</div><div class="history-time">'+esc(item.time)+'</div></div><div class="history-actions"><button class="h-act dl" title="下载">⬇</button><button class="h-act pv" title="预览">👁</button><button class="h-act del" title="删除">✕</button></div>';
       el.querySelector('.dl').onclick=function(ev){ev.stopPropagation();var a=document.createElement('a');a.href=item.result;a.download=(item.name||'抠图结果')+'.png';document.body.appendChild(a);a.click();document.body.removeChild(a)};
       el.querySelector('.pv').onclick=function(ev){ev.stopPropagation();showResult(item)};
       el.querySelector('.del').onclick=function(ev){ev.stopPropagation();save(load().filter(function(x){return x.id!==item.id}));render()};
@@ -1001,7 +885,7 @@ downloadBtn.addEventListener('click',function(){
   if(!resultBlob){showMsg('没有可保存的成果','error');return}
   var a=document.createElement('a');a.href=URL.createObjectURL(resultBlob);
   a.download='抠图成果_'+Date.now()+'.png';document.body.appendChild(a);a.click();
-  document.body.removeChild(a);showMsg('保存成功�?,'success');
+  document.body.removeChild(a);showMsg('保存成功！','success');
 });
 
 resetBtn.addEventListener('click',function(){
@@ -1013,7 +897,7 @@ resetBtn.addEventListener('click',function(){
 });
 
 function showMsg(text,type){
-  var icons={success:'�?,error:'�?,info:'💡'};
+  var icons={success:'✅',error:'❌',info:'💡'};
   messageEl.querySelector('span').innerHTML=(icons[type]||'💡')+' '+text;
   messageEl.className='msg '+(type||'info')+' active';
   setTimeout(function(){messageEl.classList.remove('active')},5500);
@@ -1023,4 +907,3 @@ function showMsg(text,type){
 </script>
 </body>
 </html>
-
