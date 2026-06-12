@@ -404,6 +404,32 @@ function setProgress(pct, text, sub){
   if(sub)  loadingProgress.textContent = sub;
 }
 
+// ===== 压缩图片（Canvas 缩小到 1200px 以内，输出 JPEG） =====
+function compressToBase64(file){
+  return new Promise(function(resolve, reject){
+    var img = new Image();
+    img.onload = function(){
+      var maxDim = 1200;
+      var w = img.width, h = img.height;
+      if(w > maxDim || h > maxDim){
+        var scale = Math.min(maxDim / w, maxDim / h);
+        w = Math.round(w * scale);
+        h = Math.round(h * scale);
+      }
+      var canvas = document.createElement('canvas');
+      canvas.width = w;
+      canvas.height = h;
+      var ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0, w, h);
+      var dataUrl = canvas.toDataURL('image/jpeg', 0.85);
+      var base64 = dataUrl.split(',')[1];
+      resolve(base64);
+    };
+    img.onerror = reject;
+    img.src = URL.createObjectURL(file);
+  });
+}
+
 // ===== 图片转 Base64（去掉 data: URL 前缀） =====
 function fileToBase64(file){
   return new Promise(function(resolve, reject){
@@ -424,9 +450,9 @@ async function startProcessing(){
   downloadBtn.disabled = true;
 
   try {
-    setProgress(15,'正在读取图片...','准备上传');
+    setProgress(15,'正在压缩图片...','减少上传数据量');
 
-    var imageBase64 = await fileToBase64(originalFile);
+    var imageBase64 = await compressToBase64(originalFile);
 
     setProgress(30,'上传到服务器...','调用阿里云 API');
 
