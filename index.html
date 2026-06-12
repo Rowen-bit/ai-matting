@@ -4,811 +4,851 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>抠图工坊</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
 <style>
-/* ===== 像素酒馆风格 ===== */
-@import url('https://fonts.googleapis.com/css2?family=ZCOOL+KuaiLe&display=swap');
-
-*{margin:0;padding:0;box-sizing:border-box}
+/* ===== Reset & Base ===== */
+*{margin:0;padding:0;box-sizing:border-box;image-rendering:pixelated}
 
 :root{
-  --wood-dark:#2d1f15;
-  --wood-mid:#4a3428;
-  --wood-light:#6b4d3a;
-  --amber:#d4a84b;
-  --amber-light:#f0c96e;
-  --amber-dark:#b88d3e;
-  --torch:#ff9d4d;
-  --shadow:#1a120e;
-  --parchment:#e8dcc8;
-  --parchment-dark:#c4b8a4;
+  --sky-top:#5c94fc;
+  --sky-bottom:#7eb8ff;
+  --grass-light:#7ec850;
+  --grass-dark:#5a9a3a;
+  --dirt:#c89b5c;
+  --dirt-dark:#a07840;
+  --cloud:#ffffff;
+  --pixel-border:#000;
+  --text-light:#fff;
+  --text-shadow:2px 2px 0 #000;
 }
 
 body{
-  font-family:'ZCOOL KuaiLe','Microsoft YaHei',sans-serif;
-  background:var(--wood-dark);
-  color:var(--parchment);
+  font-family:'Press Start 2P','Microsoft YaHei',monospace;
+  background:#000;
+  color:#fff;
   min-height:100vh;
-  line-height:1.5;
-  position:relative;
   overflow-x:hidden;
+  cursor:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16'%3E%3Crect x='4' y='0' width='2' height='4' fill='white'/%3E%3Crect x='3' y='4' width='4' height='2' fill='white'/%3E%3Crect x='2' y='6' width='6' height='2' fill='white'/%3E%3Crect x='1' y='8' width='8' height='2' fill='white'/%3E%3Crect x='0' y='10' width='10' height='2' fill='white'/%3E%3Crect x='3' y='12' width='4' height='4' fill='white'/%3E%3C/svg%3E") 8 8,crosshair;
 }
 
-/* 像素化背景 - 酒馆场景 */
-body::before{
-  content:'';
+/* ===== 像素风格背景场景 ===== */
+.pixel-scene{
   position:fixed;
   inset:0;
+  z-index:-1;
+  overflow:hidden;
+}
+
+/* 天空 */
+.pixel-sky{
+  position:absolute;
+  inset:0;
+  background:linear-gradient(180deg, #1a2a5e 0%, #2d4a9e 30%, #5c94fc 60%, #7ec8fc 100%);
+}
+
+/* 云朵 - 像素块拼成 */
+.pixel-cloud{
+  position:absolute;
+  image-rendering:pixelated;
+}
+.cloud-1{top:8%;left:10%;width:80px;height:28px}
+.cloud-2{top:15%;right:15%;width:60px;height:22px}
+.cloud-3{top:5%;left:50%;width:50px;height:18px}
+
+/* 远山 */
+.pixel-mountains{
+  position:absolute;
+  bottom:35%;
+  left:0;right:0;
+  height:30%;
+  /* 用gradient模拟像素山 */
   background:
-    /* 地板 */
+    linear-gradient(135deg, transparent 33.33%, #3a6e3a 33.33%, #3a6e3a 50%, transparent 50%) 0 0 / 80px 60px repeat-x,
+    linear-gradient(225deg, transparent 33.33%, #2d5a2d 33.33%, #2d5a2d 50%, transparent 50%) 40px 0 / 80px 60px repeat-x,
+    linear-gradient(135deg, transparent 33.33%, #4a8e4a 33.33%, #4a8e4a 50%, transparent 50%) 20px 10px / 60px 40px repeat-x;
+  opacity:0.6;
+}
+
+/* 草地 */
+.pixel-ground{
+  position:absolute;
+  bottom:0;
+  left:0;right:0;
+  height:35%;
+  background:
+    /* 草叶 */
     repeating-linear-gradient(
       0deg,
       transparent 0px,
-      transparent 4px,
-      rgba(0,0,0,0.1) 4px,
-      rgba(0,0,0,0.1) 8px
+      transparent 3px,
+      var(--grass-light) 3px,
+      var(--grass-light) 4px
     ),
-    /* 墙壁纹理 */
-    repeating-linear-gradient(
-      90deg,
-      var(--wood-dark) 0px,
-      var(--wood-dark) 2px,
-      var(--wood-mid) 2px,
-      var(--wood-mid) 4px
-    ),
-    linear-gradient(180deg, var(--wood-dark) 0%, var(--shadow) 100%);
-  z-index:-2;
+    /* 地面 */
+    linear-gradient(180deg, var(--grass-light) 0%, var(--grass-dark) 60%, var(--dirt) 60%, var(--dirt-dark) 100%);
+  image-rendering:pixelated;
 }
 
-/* 环境装饰 - 灯笼光效 */
-body::after{
+/* 像素化草地纹理 */
+.pixel-ground::before{
   content:'';
-  position:fixed;
-  top:80px;
-  right:10%;
-  width:120px;
-  height:200px;
-  background:radial-gradient(ellipse at center, rgba(255,157,77,0.15) 0%, transparent 70%);
-  pointer-events:none;
-  z-index:-1;
-}
-
-/* ===== 顶部标题牌 ===== */
-.header-sign{
-  text-align:center;
-  padding:2.5rem 1rem 1.5rem;
-  position:relative;
-}
-
-/* 木质招牌背景 */
-.sign-board{
-  display:inline-block;
-  background:linear-gradient(180deg, var(--wood-light) 0%, var(--wood-mid) 50%, var(--wood-dark) 100%);
-  border:4px solid var(--amber-dark);
-  border-radius:12px;
-  padding:1rem 2.5rem;
-  position:relative;
-  box-shadow:
-    0 8px 0 var(--shadow),
-    0 0 40px rgba(212,168,75,0.2),
-    inset 0 2px 0 rgba(255,255,255,0.1);
-}
-
-/* 招牌装饰 - 藤蔓 */
-.sign-board::before,
-.sign-board::after{
-  content:'🌿';
   position:absolute;
-  top:-8px;
-  font-size:1.2rem;
-  filter:brightness(0.8);
-}
-.sign-board::before{left:8px;transform:rotate(-15deg);}
-.sign-board::after{right:8px;transform:rotate(15deg);}
-
-/* 标题文字 */
-.sign-board h1{
-  font-size:2.2rem;
-  color:var(--amber-light);
-  text-shadow:
-    2px 2px 0 var(--shadow),
-    0 0 20px rgba(240,201,110,0.4);
-  letter-spacing:0.15em;
-  margin:0;
+  top:0;left:0;right:0;height:20px;
+  background:repeating-linear-gradient(
+    90deg,
+    var(--grass-light) 0px,
+    var(--grass-light) 4px,
+    var(--grass-dark) 4px,
+    var(--grass-dark) 8px
+  );
+  opacity:0.5;
 }
 
-/* 副标题 */
-.sign-subtitle{
-  margin-top:0.5rem;
-  font-size:0.9rem;
-  color:var(--parchment-dark);
-  text-shadow:1px 1px 2px var(--shadow);
+/* 装饰物：像素树 */
+.pixel-tree{
+  position:absolute;
+  bottom:35%;
+  image-rendering:pixelated;
 }
+.tree-1{left:8%;bottom:32%}
+.tree-2{right:12%;bottom:30%}
+.tree-3{left:25%;bottom:33%}
 
-/* ===== 主容器 ===== */
-.main{
-  max-width:600px;
+/* 用CSS画像素树 */
+.tree-css{
+  position:relative;
+  width:32px;
+  height:48px;
+}
+.tree-css .canopy{
+  position:absolute;
+  top:0;left:50%;
+  transform:translateX(-50%);
+  width:0;height:0;
+  /* 用box-shadow画三角形像素风 */
+}
+/* 简化为方块树 */
+.tree-block{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
+.tree-block .leaves{
+  display:grid;
+  grid-template-columns:repeat(5, 8px);
+  grid-template-rows:repeat(4, 8px);
+  gap:0;
+}
+.tree-block .leaves span{
+  display:block;
+  width:8px;height:8px;
+  background:#2d8a2d;
+}
+.tree-block .leaves span:nth-child(1){background:transparent}
+.tree-block .leaves span:nth-child(2){background:transparent}
+.tree-block .leaves span:nth-child(3),
+.tree-block .leaves span:nth-child(4),
+.tree-block .leaves span:nth-child(5){background:#2d8a2d}
+.tree-block .leaves span:nth-child(6),
+.tree-block .leaves span:nth-child(7),
+.tree-block .leaves span:nth-child(8),
+.tree-block .leaves span:nth-child(9),
+.tree-block .leaves span:nth-child(10){background:#3aaa3a}
+.tree-block .trunk{
+  width:8px;height:12px;
+  background:#8B5e3C;
   margin:0 auto;
-  padding:0 1rem 2rem;
 }
 
-/* ===== 像素按钮基础样式 ===== */
+/* 像素风格滚动动画 */
+@keyframes cloudFloat{
+  0%{transform:translateX(0)}
+  100%{transform:translateX(20px)}
+}
+
+/* ===== 主内容容器 ===== */
+.main-container{
+  position:relative;
+  max-width:640px;
+  margin:0 auto;
+  min-height:100vh;
+  padding:1rem;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+}
+
+/* ===== 像素风格标题牌 ===== */
+.game-title{
+  text-align:center;
+  margin-top:2rem;
+  margin-bottom:1.5rem;
+  position:relative;
+}
+
+/* 标题外框 - 像素游戏对话框风格 */
+.title-box{
+  display:inline-block;
+  background:rgba(0,0,0,0.65);
+  border:4px solid #fff;
+  /* 像素边框效果 */
+  box-shadow:
+    inset -4px -4px 0 #000,
+    inset 4px 4px 0 rgba(255,255,255,0.2),
+    0 0 0 4px #000,
+    8px 8px 0 rgba(0,0,0,0.5);
+  padding:1.2rem 2rem;
+  position:relative;
+}
+
+.title-box h1{
+  font-family:'Press Start 2P',monospace;
+  font-size:1.3rem;
+  color:#fff;
+  text-shadow:
+    3px 3px 0 #000,
+    0 0 10px rgba(255,200,50,0.5);
+  letter-spacing:2px;
+  line-height:1.8;
+}
+
+.title-box .subtitle{
+  font-size:0.55rem;
+  color:#aaa;
+  margin-top:0.5rem;
+  text-shadow:1px 1px 0 #000;
+}
+
+/* ===== 像素风格面板 ===== */
+.pixel-panel{
+  width:100%;
+  background:rgba(0,0,0,0.7);
+  border:4px solid #fff;
+  box-shadow:
+    inset -4px -4px 0 #000,
+    inset 4px 4px 0 rgba(255,255,255,0.15),
+    0 0 0 4px #000,
+    6px 6px 0 rgba(0,0,0,0.5);
+  padding:1.2rem;
+  margin-bottom:1.2rem;
+}
+
+/* ===== 像素按钮 ===== */
 .pixel-btn{
   display:block;
   width:100%;
-  padding:0.9rem 1.5rem;
-  background:linear-gradient(180deg, var(--wood-light) 0%, var(--wood-mid) 100%);
-  border:3px solid var(--amber-dark);
-  border-radius:8px;
-  color:var(--parchment);
-  font-family:inherit;
-  font-size:1.1rem;
-  cursor:pointer;
-  position:relative;
+  padding:0.8rem 1rem;
+  font-family:'Press Start 2P',monospace;
+  font-size:0.7rem;
+  background:#5a9a3a;
+  color:#fff;
+  border:4px solid #fff;
   box-shadow:
-    0 4px 0 var(--shadow),
-    inset 0 1px 0 rgba(255,255,255,0.1);
-  transition:all 0.1s;
+    inset -3px -3px 0 #2d5a2d,
+    inset 3px 3px 0 rgba(255,255,255,0.25),
+    0 0 0 3px #000,
+    5px 5px 0 rgba(0,0,0,0.6);
+  cursor:pointer;
   text-align:center;
+  position:relative;
+  transition:none;
+  text-shadow:2px 2px 0 #000;
 }
 
 .pixel-btn:hover{
-  background:linear-gradient(180deg, #7a5a45 0%, var(--wood-light) 100%);
-  border-color:var(--amber);
-  color:var(--amber-light);
+  background:#7ec850;
 }
 
 .pixel-btn:active{
-  transform:translateY(4px);
   box-shadow:
-    0 0 0 var(--shadow),
-    inset 0 2px 4px rgba(0,0,0,0.3);
+    inset -3px -3px 0 #2d5a2d,
+    inset 3px 3px 0 rgba(255,255,255,0.25),
+    0 0 0 3px #000,
+    2px 2px 0 rgba(0,0,0,0.6);
+  transform:translate(3px,3px);
 }
 
 .pixel-btn:disabled{
-  opacity:0.5;
+  background:#555;
+  box-shadow:
+    inset -3px -3px 0 #333,
+    inset 3px 3px 0 rgba(255,255,255,0.1),
+    0 0 0 3px #000,
+    5px 5px 0 rgba(0,0,0,0.6);
   cursor:not-allowed;
-  filter:grayscale(0.5);
+  color:#888;
 }
 
-/* 主按钮 - 金色高亮 */
+/* 主按钮 - 蓝色 */
 .pixel-btn-primary{
-  background:linear-gradient(180deg, var(--amber) 0%, var(--amber-dark) 100%);
-  border-color:#8b6914;
-  color:var(--wood-dark);
-  font-weight:bold;
-  text-shadow:0 1px 0 rgba(255,255,255,0.3);
+  background:#3a6ecf;
+  box-shadow:
+    inset -3px -3px 0 #1a3a8f,
+    inset 3px 3px 0 rgba(255,255,255,0.25),
+    0 0 0 3px #000,
+    5px 5px 0 rgba(0,0,0,0.6);
 }
+.pixel-btn-primary:hover{background:#5a8eef}
 
-.pixel-btn-primary:hover{
-  background:linear-gradient(180deg, var(--amber-light) 0%, var(--amber) 100%);
-  border-color:var(--amber-light);
-  color:var(--shadow);
+/* 危险按钮 - 红色 */
+.pixel-btn-danger{
+  background:#c93a3a;
+  box-shadow:
+    inset -3px -3px 0 #8f1a1a,
+    inset 3px 3px 0 rgba(255,255,255,0.25),
+    0 0 0 3px #000,
+    5px 5px 0 rgba(0,0,0,0.6);
 }
+.pixel-btn-danger:hover{background:#e95a5a}
 
 /* ===== 上传区域 ===== */
-.upload-section{
-  background:linear-gradient(180deg, rgba(45,31,21,0.9) 0%, rgba(26,18,14,0.95) 100%);
-  border:3px solid var(--wood-light);
-  border-radius:12px;
-  padding:1.5rem;
-  margin-top:1rem;
-  box-shadow:
-    0 8px 0 var(--shadow),
-    inset 0 1px 0 rgba(255,255,255,0.05);
-}
-
 .upload-area{
-  border:3px dashed var(--wood-light);
-  border-radius:8px;
-  padding:2.5rem 1rem;
+  border:3px dashed rgba(255,255,255,0.4);
+  padding:2rem 1rem;
   text-align:center;
   cursor:pointer;
+  transition:all 0.15s;
   background:repeating-linear-gradient(
-    45deg,
+    0deg,
     transparent 0px,
-    transparent 10px,
-    rgba(107,77,58,0.1) 10px,
-    rgba(107,77,58,0.1) 20px
+    transparent 3px,
+    rgba(255,255,255,0.03) 3px,
+    rgba(255,255,255,0.03) 6px
   );
-  transition:all 0.2s;
 }
 
 .upload-area:hover{
-  border-color:var(--amber);
-  background:rgba(212,168,75,0.1);
+  border-color:rgba(255,255,100,0.8);
+  background:rgba(255,255,100,0.08);
 }
 
 .upload-area.drag-over{
-  border-color:var(--amber-light);
-  background:rgba(212,168,75,0.2);
-  transform:scale(1.02);
+  border-color:#ffff50;
+  background:rgba(255,255,100,0.15);
 }
 
 .upload-icon{
-  font-size:2.5rem;
-  color:var(--amber);
-  margin-bottom:0.75rem;
-  text-shadow:0 2px 4px var(--shadow);
+  font-size:2rem;
+  margin-bottom:0.5rem;
+  filter:contrast(1.2);
 }
 
 .upload-text{
-  font-size:1.1rem;
-  color:var(--parchment);
-  margin-bottom:0.3rem;
+  font-size:0.65rem;
+  color:#ddd;
+  line-height:1.8;
+  text-shadow:1px 1px 0 #000;
 }
 
 .upload-hint{
-  font-size:0.8rem;
-  color:var(--parchment-dark);
+  font-size:0.5rem;
+  color:#999;
+  margin-top:0.3rem;
+  text-shadow:1px 1px 0 #000;
 }
 
 #fileInput{display:none}
 
-/* ===== 消息提示 ===== */
+/* ===== 消息提示 - 像素对话框风格 ===== */
 .msg{
-  padding:0.75rem 1rem;
-  border-radius:6px;
-  margin:1rem 0;
-  font-size:0.9rem;
   display:none;
-  align-items:flex-start;
-  gap:0.5rem;
-  border:2px solid;
-  box-shadow:0 4px 0 var(--shadow);
+  padding:0.8rem 1rem;
+  font-size:0.6rem;
+  line-height:1.8;
+  border:3px solid;
+  box-shadow:
+    inset -2px -2px 0 rgba(0,0,0,0.4),
+    inset 2px 2px 0 rgba(255,255,255,0.1),
+    0 0 0 2px #000,
+    4px 4px 0 rgba(0,0,0,0.5);
+  margin-bottom:1rem;
+  text-shadow:1px 1px 0 rgba(0,0,0,0.8);
 }
 
-.msg.active{display:flex;animation:msgPop 0.3s ease-out}
+.msg.active{display:block;animation:msgPop 0.2s steps(4)}
+
 @keyframes msgPop{
-  0%{opacity:0;transform:translateY(-10px) scale(0.95);}
-  100%{opacity:1;transform:translateY(0) scale(1);}
+  0%{transform:scale(0.8);opacity:0}
+  100%{transform:scale(1);opacity:1}
 }
 
-.msg.success{
-  background:rgba(46,204,113,0.15);
-  border-color:#2ecc71;
-  color:#2ecc71;
-}
-
-.msg.error{
-  background:rgba(231,76,60,0.15);
-  border-color:#e74c3c;
-  color:#e74c3c;
-}
-
-.msg.info{
-  background:rgba(74,144,217,0.15);
-  border-color:#4a90d9;
-  color:#4a90d9;
-}
+.msg.success{border-color:#5a9a3a;background:rgba(90,154,58,0.25);color:#7ec850}
+.msg.error{border-color:#c93a3a;background:rgba(201,58,58,0.25);color:#e95a5a}
+.msg.info{border-color:#3a6ecf;background:rgba(58,110,207,0.25);color:#5a8eef}
 
 /* ===== 预览区域 ===== */
 .preview-section{display:none}
-.preview-section.active{display:block;animation:fadeIn 0.4s ease-out}
-@keyframes fadeIn{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+.preview-section.active{display:block;animation:fadeIn 0.3s steps(6)}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
 
-.section-header{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  margin:1.5rem 0 1rem;
-  position:relative;
+.section-label{
+  font-size:0.6rem;
+  color:#ccc;
+  text-align:center;
+  margin-bottom:0.8rem;
+  text-shadow:1px 1px 0 #000;
 }
 
-.section-title{
-  font-size:1.1rem;
-  color:var(--amber);
-  display:flex;
-  align-items:center;
-  gap:0.5rem;
-  padding:0.5rem 1.5rem;
-  background:var(--wood-mid);
-  border:2px solid var(--wood-light);
-  border-radius:6px;
-  box-shadow:0 4px 0 var(--shadow);
-}
-
-/* 图片展示框 */
 .preview-grid{
   display:grid;
   grid-template-columns:1fr 1fr;
-  gap:1rem;
+  gap:0.8rem;
 }
 
 @media(max-width:600px){.preview-grid{grid-template-columns:1fr}}
 
 .preview-card{
-  background:linear-gradient(180deg, var(--wood-mid) 0%, var(--wood-dark) 100%);
-  border:3px solid var(--wood-light);
-  border-radius:8px;
+  background:rgba(0,0,0,0.6);
+  border:3px solid #fff;
+  box-shadow:
+    inset -2px -2px 0 #000,
+    inset 2px 2px 0 rgba(255,255,255,0.1),
+    0 0 0 2px #000,
+    4px 4px 0 rgba(0,0,0,0.5);
   overflow:hidden;
-  box-shadow:0 6px 0 var(--shadow);
 }
 
 .card-label{
-  font-size:0.75rem;
-  color:var(--amber);
-  padding:0.5rem;
+  font-size:0.5rem;
+  color:#aaa;
+  padding:0.4rem;
   text-align:center;
-  border-bottom:2px solid var(--wood-light);
-  background:rgba(0,0,0,0.2);
+  border-bottom:2px solid #333;
+  background:rgba(0,0,0,0.5);
+  text-shadow:1px 1px 0 #000;
 }
 
 .image-frame{
-  min-height:180px;
+  min-height:150px;
   display:flex;
   align-items:center;
   justify-content:center;
-  position:relative;
-  padding:0.75rem;
+  padding:0.5rem;
   background:repeating-linear-gradient(
     0deg,
-    #1a120e 0px,
-    #1a120e 8px,
-    #231912 8px,
-    #231912 16px
+    #111 0px,#111 4px,
+    #1a1a1a 4px,#1a1a1a 8px
   );
 }
 
 .image-frame img{
   max-width:100%;
-  max-height:220px;
+  max-height:200px;
   object-fit:contain;
-  border-radius:4px;
-  box-shadow:0 4px 12px rgba(0,0,0,0.5);
+  image-rendering:auto;
 }
 
-/* 透明背景格子 */
+/* 透明背景棋盘格 */
 .result-frame{
   background-image:
-    linear-gradient(45deg, #2a1f18 25%, transparent 25%),
-    linear-gradient(-45deg, #2a1f18 25%, transparent 25%),
-    linear-gradient(45deg, transparent 75%, #2a1f18 75%),
-    linear-gradient(-45deg, transparent 75%, #2a1f18 75%);
-  background-size:16px 16px;
-  background-position:0 0,0 8px,8px -8px,-8px 0px;
-  background-color:#1a120e;
+    linear-gradient(45deg, #222 25%, transparent 25%),
+    linear-gradient(-45deg, #222 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #222 75%),
+    linear-gradient(-45deg, transparent 75%, #222 75%);
+  background-size:12px 12px;
+  background-position:0 0,0 6px,6px -6px,-6px 0px;
+  background-color:#111;
 }
 
-/* ===== 加载动画 ===== */
+/* ===== 加载动画 - 像素风格 ===== */
 .loading-overlay{
   position:absolute;
   inset:0;
-  background:rgba(26,18,14,0.95);
+  background:rgba(0,0,0,0.9);
   display:none;
   flex-direction:column;
   align-items:center;
   justify-content:center;
-  gap:0.75rem;
+  gap:0.8rem;
   z-index:10;
 }
 
 .loading-overlay.active{display:flex}
 
-/* 像素风格加载条 */
-.pixel-spinner{
-  width:48px;
-  height:48px;
-  position:relative;
+/* 像素旋转方块 */
+.pixel-loader{
+  width:32px;height:32px;
+  background:#5c94fc;
+  animation:pixelRotate 0.8s steps(4) infinite;
+  box-shadow:
+    0 0 0 3px #000,
+    4px 4px 0 rgba(0,0,0,0.5);
 }
 
-.pixel-spinner::before{
-  content:'';
-  position:absolute;
-  inset:0;
-  border:4px solid var(--wood-light);
-  border-top-color:var(--amber);
-  border-radius:4px;
-  animation:pixelSpin 1s steps(8) infinite;
-}
-
-@keyframes pixelSpin{
-  to{transform:rotate(360deg)}
+@keyframes pixelRotate{
+  0%{transform:scale(1) rotate(0deg)}
+  25%{transform:scale(1.2) rotate(90deg)}
+  50%{transform:scale(1) rotate(180deg)}
+  75%{transform:scale(1.2) rotate(270deg)}
+  100%{transform:scale(1) rotate(360deg)}
 }
 
 .loading-text{
-  font-size:1rem;
-  color:var(--amber);
+  font-size:0.65rem;
+  color:#5c94fc;
+  text-shadow:1px 1px 0 #000;
 }
 
 .loading-sub{
-  font-size:0.8rem;
-  color:var(--parchment-dark);
+  font-size:0.5rem;
+  color:#888;
+  text-shadow:1px 1px 0 #000;
 }
 
 /* 像素进度条 */
 .progress-track{
-  width:200px;
-  height:12px;
-  background:var(--wood-dark);
-  border:2px solid var(--wood-light);
-  border-radius:4px;
+  width:180px;
+  height:10px;
+  background:#111;
+  border:2px solid #fff;
+  box-shadow:inset -1px -1px 0 #000,inset 1px 1px 0 rgba(255,255,255,0.1),0 0 0 1px #000;
   overflow:hidden;
-  position:relative;
 }
 
 .progress-fill{
   height:100%;
-  background:linear-gradient(180deg, var(--amber-light) 0%, var(--amber) 50%, var(--amber-dark) 100%);
-  border-radius:2px;
-  transition:width 0.3s;
+  background:linear-gradient(180deg, #7ec850 0%, #5a9a3a 50%, #3a7a2a 100%);
   width:0%;
+  transition:width 0.3s steps(10);
   box-shadow:inset 0 1px 0 rgba(255,255,255,0.3);
 }
 
 /* ===== 按钮组 ===== */
 .btn-group{
   display:flex;
-  gap:0.75rem;
+  gap:0.8rem;
   justify-content:center;
   flex-wrap:wrap;
-  margin-top:1.5rem;
+  margin-top:1.2rem;
+  width:100%;
 }
 
 .btn-group .pixel-btn{
   width:auto;
-  min-width:140px;
+  min-width:160px;
 }
 
 /* ===== 底部 ===== */
 .footer{
   text-align:center;
   padding:2rem 1rem;
-  font-size:0.75rem;
-  color:var(--parchment-dark);
-  border-top:2px solid var(--wood-mid);
-  margin-top:2rem;
+  font-size:0.45rem;
+  color:#666;
+  text-shadow:1px 1px 0 #000;
+  line-height:2;
+  margin-top:auto;
 }
 
 /* ===== 历史记录按钮 ===== */
 .history-btn{
   position:fixed;
-  top:1rem;
-  right:1rem;
-  width:48px;
-  height:48px;
-  background:linear-gradient(180deg, var(--wood-light) 0%, var(--wood-mid) 100%);
-  border:3px solid var(--amber-dark);
-  border-radius:8px;
-  color:var(--amber);
-  font-size:1.2rem;
+  top:1rem;right:1rem;
+  width:48px;height:48px;
+  background:rgba(0,0,0,0.7);
+  border:4px solid #fff;
+  box-shadow:
+    inset -2px -2px 0 #000,
+    inset 2px 2px 0 rgba(255,255,255,0.2),
+    0 0 0 2px #000,
+    4px 4px 0 rgba(0,0,0,0.5);
+  color:#fff;
+  font-size:1rem;
   cursor:pointer;
-  box-shadow:0 4px 0 var(--shadow);
   z-index:100;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-}
-
-.history-btn:hover{
-  border-color:var(--amber);
-  color:var(--amber-light);
+  display:flex;align-items:center;justify-content:center;
 }
 
 .history-btn:active{
-  transform:translateY(4px);
-  box-shadow:0 0 0 var(--shadow);
+  box-shadow:
+    inset -2px -2px 0 #000,
+    inset 2px 2px 0 rgba(255,255,255,0.2),
+    0 0 0 2px #000,
+    2px 2px 0 rgba(0,0,0,0.5);
+  transform:translate(2px,2px);
 }
 
 /* ===== 历史记录面板 ===== */
 .history-overlay{
-  position:fixed;
-  inset:0;
-  background:rgba(26,18,14,0.85);
+  position:fixed;inset:0;
+  background:rgba(0,0,0,0.85);
   z-index:2000;
-  opacity:0;
-  pointer-events:none;
-  transition:opacity 0.3s;
+  opacity:0;pointer-events:none;
+  transition:opacity 0.2s steps(4);
 }
-
 .history-overlay.active{opacity:1;pointer-events:auto}
 
 .history-panel{
   position:fixed;
-  top:0;
-  right:-360px;
-  width:340px;
-  max-width:90vw;
+  top:0;right:-360px;
+  width:340px;max-width:90vw;
   height:100vh;
-  background:linear-gradient(180deg, var(--wood-mid) 0%, var(--wood-dark) 100%);
-  border-left:3px solid var(--wood-light);
+  background:rgba(0,0,0,0.95);
+  border-left:4px solid #fff;
+  box-shadow:-6px 0 0 rgba(0,0,0,0.5);
   z-index:2001;
-  display:flex;
-  flex-direction:column;
-  transition:right 0.3s ease-out;
-  box-shadow:-8px 0 32px rgba(0,0,0,0.5);
+  display:flex;flex-direction:column;
+  transition:right 0.3s steps(8);
 }
 
 .history-panel.active{right:0}
 
 .history-header{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
+  display:flex;align-items:center;justify-content:space-between;
   padding:1rem;
-  border-bottom:3px solid var(--wood-light);
-  background:var(--wood-dark);
+  border-bottom:4px solid #333;
+  background:rgba(0,0,0,0.8);
 }
 
 .history-title{
-  font-size:1rem;
-  color:var(--amber);
-  display:flex;
-  align-items:center;
-  gap:0.5rem;
+  font-size:0.6rem;
+  color:#ddd;
+  text-shadow:1px 1px 0 #000;
 }
 
 .history-close{
-  width:36px;
-  height:36px;
-  background:var(--wood-mid);
-  border:2px solid var(--wood-light);
-  border-radius:6px;
-  color:var(--parchment);
-  font-size:1rem;
+  width:36px;height:36px;
+  background:rgba(0,0,0,0.7);
+  border:3px solid #fff;
+  box-shadow:inset -2px -2px 0 #000,inset 2px 2px 0 rgba(255,255,255,0.15),0 0 0 2px #000,3px 3px 0 rgba(0,0,0,0.5);
+  color:#fff;font-size:0.8rem;
   cursor:pointer;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-}
-
-.history-close:hover{
-  border-color:var(--amber);
-  color:var(--amber);
+  display:flex;align-items:center;justify-content:center;
 }
 
 .history-list{
-  flex:1;
-  overflow-y:auto;
-  padding:1rem;
-  display:flex;
-  flex-direction:column;
-  gap:0.75rem;
+  flex:1;overflow-y:auto;
+  padding:0.8rem;
+  display:flex;flex-direction:column;gap:0.6rem;
 }
 
 .history-empty{
-  flex:1;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  color:var(--parchment-dark);
-  gap:0.5rem;
-  text-align:center;
+  flex:1;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  color:#555;gap:0.5rem;text-align:center;
+  font-size:0.6rem;
+  text-shadow:1px 1px 0 #000;
 }
 
-.history-empty i{
-  font-size:2.5rem;
-  opacity:0.5;
-}
+.history-empty i{font-size:2rem;opacity:0.3}
 
 .history-item{
-  background:var(--wood-dark);
-  border:2px solid var(--wood-light);
-  border-radius:6px;
-  padding:0.75rem;
-  display:flex;
-  gap:0.75rem;
-  align-items:center;
+  background:rgba(255,255,255,0.05);
+  border:3px solid #444;
+  box-shadow:inset -2px -2px 0 #000,inset 2px 2px 0 rgba(255,255,255,0.05),0 0 0 2px #000,3px 3px 0 rgba(0,0,0,0.5);
+  padding:0.6rem;
+  display:flex;gap:0.6rem;align-items:center;
   cursor:pointer;
-  transition:all 0.2s;
 }
 
-.history-item:hover{
-  border-color:var(--amber);
-  box-shadow:0 0 12px rgba(212,168,75,0.2);
-}
+.history-item:hover{border-color:#888}
 
 .history-thumb{
-  width:56px;
-  height:56px;
+  width:48px;height:48px;
   object-fit:cover;
-  border-radius:4px;
-  border:2px solid var(--wood-light);
+  border:2px solid #555;
+  image-rendering:auto;
   flex-shrink:0;
 }
 
 .history-info{flex:1;min-width:0}
+.history-name{font-size:0.5rem;color:#ccc;text-shadow:1px 1px 0 #000;word-break:break-all}
+.history-time{font-size:0.45rem;color:#666;margin-top:2px;text-shadow:1px 1px 0 #000}
 
-.history-name{
-  font-size:0.8rem;
-  color:var(--parchment);
-  white-space:nowrap;
-  overflow:hidden;
-  text-overflow:ellipsis;
-}
-
-.history-time{
-  font-size:0.7rem;
-  color:var(--parchment-dark);
-  margin-top:2px;
-}
-
-.history-actions{
-  display:flex;
-  gap:0.3rem;
-  flex-shrink:0;
-}
-
+.history-actions{display:flex;gap:0.3rem;flex-shrink:0}
 .history-act-btn{
-  width:32px;
-  height:32px;
-  background:var(--wood-mid);
-  border:2px solid var(--wood-light);
-  border-radius:4px;
-  color:var(--parchment);
-  font-size:0.75rem;
+  width:28px;height:28px;
+  background:rgba(0,0,0,0.7);
+  border:2px solid #666;
+  box-shadow:inset -1px -1px 0 #000,inset 1px 1px 0 rgba(255,255,255,0.1),0 0 0 1px #000,2px 2px 0 rgba(0,0,0,0.5);
+  color:#ccc;font-size:0.6rem;
   cursor:pointer;
-  display:flex;
-  align-items:center;
-  justify-content:center;
+  display:flex;align-items:center;justify-content:center;
 }
-
-.history-act-btn:hover{
-  border-color:var(--amber);
-  color:var(--amber);
-}
-
-.history-act-btn.del:hover{
-  border-color:#e74c3c;
-  color:#e74c3c;
-}
+.history-act-btn:hover{border-color:#fff;color:#fff}
+.history-act-btn.del:hover{border-color:#e74c3c;color:#e74c3c}
 
 .history-footer{
-  padding:1rem;
-  border-top:3px solid var(--wood-light);
-  background:var(--wood-dark);
-  display:flex;
-  justify-content:flex-end;
+  padding:0.8rem;border-top:4px solid #333;
+  background:rgba(0,0,0,0.8);
+  display:flex;justify-content:flex-end;
 }
 
-/* ===== 装饰元素 ===== */
-.decor-barrel{
-  position:fixed;
-  bottom:20px;
-  left:20px;
-  width:60px;
-  height:70px;
-  background:linear-gradient(180deg, var(--wood-light) 0%, var(--wood-mid) 100%);
-  border:3px solid var(--wood-dark);
-  border-radius:8px;
-  opacity:0.3;
+/* ===== 像素云朵用CSS画 ===== */
+.cloud-pixel{
+  position:absolute;
+  display:grid;
+  grid-template-columns:repeat(6,8px);
+  grid-template-rows:repeat(3,8px);
+  gap:0;
+  image-rendering:pixelated;
+}
+.cloud-pixel span{
+  display:block;width:8px;height:8px;
+  background:#fff;
+  opacity:0.7;
+}
+.cloud-pixel span.empty{background:transparent}
+
+/* 地面小草 */
+.grass-decoration{
+  position:absolute;
+  bottom:35%;
+  left:0;right:0;
+  height:30px;
   pointer-events:none;
-  z-index:-1;
-}
-
-.decor-barrel::before{
-  content:'';
-  position:absolute;
-  top:20%;
-  left:-3px;
-  right:-3px;
-  height:3px;
-  background:var(--wood-dark);
-}
-
-.decor-barrel::after{
-  content:'';
-  position:absolute;
-  top:60%;
-  left:-3px;
-  right:-3px;
-  height:3px;
-  background:var(--wood-dark);
 }
 
 /* ===== 响应式 ===== */
 @media(max-width:600px){
-  .sign-board h1{font-size:1.6rem}
-  .sign-board{padding:0.75rem 1.5rem}
-  .upload-section{padding:1rem}
-  .preview-grid{grid-template-columns:1fr}
+  .title-box h1{font-size:0.9rem}
+  .pixel-panel{padding:0.8rem}
+  .upload-area{padding:1.2rem 0.5rem}
   .history-panel{width:100vw;max-width:100vw}
+  .btn-group .pixel-btn{min-width:120px;font-size:0.6rem}
 }
 
-/* ===== 像素闪烁动画 ===== */
-@keyframes torchFlicker{
-  0%,100%{opacity:0.8}
-  50%{opacity:1}
-  25%{opacity:0.75}
-  75%{opacity:0.9}
-}
-
-.torch-glow{
-  animation:torchFlicker 2s ease-in-out infinite;
-}
+/* 自定义滚动条 - 像素风格 */
+::-webkit-scrollbar{width:12px}
+::-webkit-scrollbar-track{background:#111;border:2px solid #333}
+::-webkit-scrollbar-thumb{background:#555;border:2px solid #333}
+::-webkit-scrollbar-thumb:hover{background:#888}
 </style>
 </head>
 <body>
 
-<!-- 装饰元素 -->
-<div class="decor-barrel"></div>
+<!-- 像素风格游戏场景背景 -->
+<div class="pixel-scene">
+  <div class="pixel-sky"></div>
+
+  <!-- 云朵 - CSS像素块 -->
+  <div class="cloud-pixel" style="top:8%;left:10%">
+    <span class="empty"></span><span></span><span></span><span></span><span class="empty"></span><span class="empty"></span>
+    <span></span><span></span><span></span><span></span><span></span><span class="empty"></span>
+    <span></span><span></span><span></span><span></span><span></span><span></span>
+  </div>
+  <div class="cloud-pixel" style="top:14%;right:12%">
+    <span class="empty"></span><span></span><span></span><span class="empty"></span><span class="empty"></span><span class="empty"></span>
+    <span></span><span></span><span></span><span></span><span class="empty"></span><span class="empty"></span>
+    <span></span><span></span><span></span><span></span><span></span><span></span>
+  </div>
+  <div class="cloud-pixel" style="top:5%;left:55%">
+    <span class="empty"></span><span></span><span></span><span></span><span class="empty"></span><span class="empty"></span>
+    <span></span><span></span><span></span><span></span><span></span><span class="empty"></span>
+  </div>
+
+  <!-- 远山 -->
+  <div class="pixel-mountains"></div>
+
+  <!-- 像素树装饰 -->
+  <div class="pixel-tree tree-1">
+    <div class="tree-block">
+      <div class="leaves">
+        <span class="empty"></span><span></span><span></span><span></span><span class="empty"></span>
+        <span></span><span></span><span></span><span></span><span></span><span></span>
+        <span></span><span></span><span></span><span></span><span></span>
+        <span></span><span></span><span></span><span></span><span></span>
+      </div>
+      <div class="trunk"></div>
+    </div>
+  </div>
+
+  <div class="pixel-tree tree-2">
+    <div class="tree-block">
+      <div class="leaves">
+        <span class="empty"></span><span></span><span></span><span></span><span class="empty"></span>
+        <span></span><span></span><span></span><span></span><span></span><span></span>
+        <span></span><span></span><span></span><span></span><span></span>
+        <span></span><span></span><span></span><span></span><span></span>
+      </div>
+      <div class="trunk"></div>
+    </div>
+  </div>
+
+  <!-- 地面 -->
+  <div class="pixel-ground"></div>
+</div>
 
 <!-- 历史记录按钮 -->
-<button class="history-btn" id="historyBtn" title="历史记录">
+<button class="history-btn" id="historyBtn" title="HISTORY">
   <i class="fas fa-clock-rotate-left"></i>
 </button>
 
-<!-- 顶部标题牌 -->
-<header class="header-sign">
-  <div class="sign-board torch-glow">
-    <h1>🏠 抠图工坊</h1>
-  </div>
-  <p class="sign-subtitle">上传图片 · 一键去除背景</p>
-</header>
+<!-- 主内容 -->
+<div class="main-container">
 
-<main class="main">
-
-<!-- 上传区域 -->
-<div class="upload-section">
-  <div class="upload-area" id="uploadArea">
-    <div class="upload-icon"><i class="fas fa-scroll"></i></div>
-    <div class="upload-text">点击或拖拽图片到此处</div>
-    <div class="upload-hint">支持 JPG、PNG、WebP 格式 · 大图自动压缩</div>
-  </div>
-  <input type="file" id="fileInput" accept="image/jpeg,image/png,image/webp">
-  <div class="msg" id="message"><i></i><span></span></div>
-</div>
-
-<!-- 预览区域 -->
-<div class="preview-section" id="previewSection">
-  <div class="section-header">
-    <div class="section-title">
-      <i class="fas fa-flask"></i>
-      <span>炼金结果</span>
+  <!-- 标题 -->
+  <header class="game-title">
+    <div class="title-box">
+      <h1>🔧 抠图工坊</h1>
+      <div class="subtitle">UPLOAD &middot; PROCESS &middot; DOWNLOAD</div>
     </div>
-  </div>
-  <div class="preview-grid">
-    <div class="preview-card">
-      <div class="card-label"><i class="fas fa-image"></i> 原始素材</div>
-      <div class="image-frame"><img id="originalImage" alt="原始图片"></div>
+  </header>
+
+  <!-- 上传面板 -->
+  <div class="pixel-panel" style="width:100%">
+    <div class="upload-area" id="uploadArea">
+      <div class="upload-icon">📁</div>
+      <div class="upload-text">CLICK OR DROP IMAGE HERE</div>
+      <div class="upload-hint">JPG / PNG / WEBP &middot; AUTO RESIZE</div>
     </div>
-    <div class="preview-card">
-      <div class="card-label"><i class="fas fa-wand-magic-sparkles"></i> 抠图成果</div>
-      <div class="image-frame result-frame">
-        <div class="loading-overlay" id="loading">
-          <div class="pixel-spinner"></div>
-          <div class="loading-text" id="loadingText">正在炼金...</div>
-          <div class="loading-sub" id="loadingProgress">准备材料</div>
-          <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+    <input type="file" id="fileInput" accept="image/jpeg,image/png,image/webp">
+    <div class="msg" id="message"><span></span></div>
+  </div>
+
+  <!-- 预览区域 -->
+  <div class="preview-section" id="previewSection">
+    <div class="section-label">&#9670; RESULT &#9670;</div>
+    <div class="preview-grid">
+      <div class="preview-card">
+        <div class="card-label">&#9634; ORIGINAL</div>
+        <div class="image-frame"><img id="originalImage" alt="Original"></div>
+      </div>
+      <div class="preview-card">
+        <div class="card-label">&#9670; RESULT</div>
+        <div class="image-frame result-frame" style="position:relative">
+          <div class="loading-overlay" id="loading">
+            <div class="pixel-loader"></div>
+            <div class="loading-text" id="loadingText">PROCESSING...</div>
+            <div class="loading-sub" id="loadingProgress">INIT</div>
+            <div class="progress-track"><div class="progress-fill" id="progressFill"></div></div>
+          </div>
+          <img id="resultImage" alt="Result" style="display:none;">
         </div>
-        <img id="resultImage" alt="抠图结果" style="display:none;">
       </div>
     </div>
+    <div class="btn-group">
+      <button class="pixel-btn pixel-btn-primary" id="downloadBtn" disabled>
+        💾 SAVE
+      </button>
+      <button class="pixel-btn" id="resetBtn">
+        🔄 RETRY
+      </button>
+    </div>
   </div>
-  <div class="btn-group">
-    <button class="pixel-btn pixel-btn-primary" id="downloadBtn" disabled>
-      <i class="fas fa-gem"></i> 保存成果
-    </button>
-    <button class="pixel-btn" id="resetBtn">
-      <i class="fas fa-rotate-left"></i> 重新开始
-    </button>
-  </div>
+
+  <footer class="footer">
+    POWERED BY ALIYUN &middot; 2026
+  </footer>
+
 </div>
 
-<footer class="footer">
-  <p>⚔️ 基于阿里云通用分割 API · 2026 抠图工坊</p>
-</footer>
-
-</main>
-
-<!-- 历史记录侧边栏 -->
+<!-- 历史记录面板 -->
 <div class="history-overlay" id="historyOverlay"></div>
 <div class="history-panel" id="historyPanel">
   <div class="history-header">
-    <span class="history-title"><i class="fas fa-scroll"></i> 炼金记录</span>
-    <button class="history-close" id="historyClose"><i class="fas fa-times"></i></button>
+    <span class="history-title">📜 HISTORY</span>
+    <button class="history-close" id="historyClose">✕</button>
   </div>
   <div class="history-list" id="historyList">
     <div class="history-empty" id="historyEmpty">
-      <i class="fas fa-chest"></i>
-      <p>暂无记录</p>
-      <p>完成抠图后会自动保存</p>
+      <i class="fas fa-inbox"></i>
+      <p>NO RECORDS</p>
     </div>
   </div>
   <div class="history-footer">
-    <button class="pixel-btn" id="historyClearBtn" style="font-size:0.8rem;padding:0.4rem 0.8rem">
-      <i class="fas fa-fire"></i> 清空记录
+    <button class="pixel-btn pixel-btn-danger" id="historyClearBtn" style="font-size:0.55rem;padding:0.5rem 0.8rem">
+      🗑 CLEAR
     </button>
   </div>
 </div>
@@ -834,10 +874,9 @@ var messageEl       = $('message');
 var originalFile = null;
 var resultBlob   = null;
 
-// 代理地址
 var PROXY_URL = localStorage.getItem('api') || 'https://matting-ai-matting-svc-evgawfnhsq.cn-shanghai.fcapp.run/api/matting';
 
-// 上传事件
+// 上传
 uploadArea.addEventListener('click', function(e){ e.preventDefault(); fileInput.click(); });
 fileInput.addEventListener('change', function(e){ if(e.target.files[0]) handleFile(e.target.files[0]); });
 uploadArea.addEventListener('dragover', function(e){ e.preventDefault(); uploadArea.classList.add('drag-over'); });
@@ -846,12 +885,12 @@ uploadArea.addEventListener('drop', function(e){
   e.preventDefault(); uploadArea.classList.remove('drag-over');
   var file = e.dataTransfer.files[0];
   if(file && file.type.startsWith('image/')) handleFile(file);
-  else showMsg('请选择图片文件','error');
+  else showMsg('INVALID FILE','error');
 });
 
 function handleFile(file){
   if(!file.type.match(/^image\/(jpeg|png|webp)$/)){
-    showMsg('仅支持 JPG、PNG、WebP 格式','error'); return;
+    showMsg('JPG/PNG/WEBP ONLY','error'); return;
   }
   originalFile = file;
   var reader = new FileReader();
@@ -860,7 +899,7 @@ function handleFile(file){
     previewSection.classList.add('active');
     resultImage.style.display = 'none';
     loadingEl.classList.remove('active');
-    showMsg('材料已准备，开始炼金...','info');
+    showMsg('FILE LOADED - STARTING...','info');
     startProcessing();
   };
   reader.readAsDataURL(file);
@@ -872,244 +911,131 @@ function setProgress(pct, text, sub){
   if(sub)  loadingProgress.textContent = sub;
 }
 
-// 智能压缩
 function compressToBase64(file){
   return new Promise(function(resolve, reject){
     var img = new Image();
     img.onload = function(){
       var levels = [
-        {maxDim: 1600, quality: 0.90},
-        {maxDim: 1200, quality: 0.85},
-        {maxDim: 1000, quality: 0.80},
-        {maxDim: 800,  quality: 0.75},
-        {maxDim: 600,  quality: 0.70},
+        {maxDim:1600,quality:0.90},{maxDim:1200,quality:0.85},
+        {maxDim:1000,quality:0.80},{maxDim:800,quality:0.75},
+        {maxDim:600,quality:0.70},
       ];
       var maxBase64Size = 3.5 * 1024 * 1024;
       var base64 = null;
-      var origW = img.width, origH = img.height;
-
-      for(var i = 0; i < levels.length; i++){
-        var lvl = levels[i];
-        var w = origW, h = origH;
-        if(w > lvl.maxDim || h > lvl.maxDim){
-          var scale = Math.min(lvl.maxDim / w, lvl.maxDim / h);
-          w = Math.round(w * scale);
-          h = Math.round(h * scale);
+      for(var i=0;i<levels.length;i++){
+        var lvl=levels[i],w=img.width,h=img.height;
+        if(w>lvl.maxDim||h>lvl.maxDim){
+          var scale=Math.min(lvl.maxDim/w,lvl.maxDim/h);
+          w=Math.round(w*scale);h=Math.round(h*scale);
         }
-        var canvas = document.createElement('canvas');
-        canvas.width = w; canvas.height = h;
-        var ctx = canvas.getContext('2d');
-        ctx.drawImage(img, 0, 0, w, h);
-        var dataUrl = canvas.toDataURL('image/jpeg', lvl.quality);
-        base64 = dataUrl.split(',')[1];
-        if(base64.length <= maxBase64Size){
-          console.log('压缩成功：' + origW + 'x' + origH + ' → ' + w + 'x' + h);
-          break;
-        }
+        var c=document.createElement('canvas');c.width=w;c.height=h;
+        c.getContext('2d').drawImage(img,0,0,w,h);
+        base64=c.toDataURL('image/jpeg',lvl.quality).split(',')[1];
+        if(base64.length<=maxBase64Size) break;
       }
       resolve(base64);
     };
-    img.onerror = reject;
-    img.src = URL.createObjectURL(file);
+    img.onerror=reject;
+    img.src=URL.createObjectURL(file);
   });
 }
 
 async function startProcessing(){
   if(!originalFile) return;
   loadingEl.classList.add('active');
-  resultImage.style.display = 'none';
-  downloadBtn.disabled = true;
-
+  resultImage.style.display='none';
+  downloadBtn.disabled=true;
   try {
-    setProgress(15,'正在精炼材料...','压缩图片尺寸');
+    setProgress(15,'COMPRESSING...','RESIZE');
     var imageBase64 = await compressToBase64(originalFile);
-
-    setProgress(30,'传送至炼金工坊...','连接服务器');
+    setProgress(30,'CONNECTING...','SERVER');
     var resp = await fetch(PROXY_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ image: imageBase64 })
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({image:imageBase64})
     });
-
     if(!resp.ok){
       var errData;
-      try { errData = await resp.json(); } catch(e) {}
-      throw new Error((errData && errData.error) || '炼金失败 (HTTP ' + resp.status + ')');
+      try{errData=await resp.json()}catch(e){}
+      throw new Error((errData&&errData.error)||'HTTP '+resp.status);
     }
-
-    setProgress(70,'施展分割魔法...','AI识别主体');
+    setProgress(70,'AI WORKING...','SEGMENT');
     var blob = await resp.blob();
-    if(!blob || blob.size === 0) throw new Error('未获得炼金成果');
-
-    setProgress(90,'优化边缘...','');
+    if(!blob||blob.size===0) throw new Error('EMPTY RESULT');
+    setProgress(90,'OPTIMIZING...','');
     resultBlob = blob;
     resultImage.src = URL.createObjectURL(blob);
     resultImage.style.display = 'block';
     downloadBtn.disabled = false;
-
-    setProgress(100,'炼金完成！','');
-    setTimeout(function(){ loadingEl.classList.remove('active'); }, 500);
-    showMsg('炼金成功！点击「保存成果」下载','success');
-
+    setProgress(100,'DONE!','');
+    setTimeout(function(){loadingEl.classList.remove('active');},500);
+    showMsg('SUCCESS! CLICK SAVE TO DOWNLOAD','success');
     if(window.addMattingHistory) window.addMattingHistory(resultImage.src);
-
   } catch(err){
-    console.error('Processing error:', err);
+    console.error(err);
     loadingEl.classList.remove('active');
-    showMsg('炼金失败：' + err.message,'error');
+    showMsg('ERROR: '+err.message,'error');
   }
 }
 
-// 历史记录功能
+// 历史记录
 (function(){
-  var HISTORY_KEY = 'matting_history';
-  var MAX_ITEMS = 20;
+  var KEY='matting_history', MAX=20;
+  function load(){try{return JSON.parse(localStorage.getItem(KEY))||[]}catch(e){return[]}}
+  function save(list){localStorage.setItem(KEY,JSON.stringify(list))}
+  function escapeHtml(s){var d=document.createElement('div');d.textContent=s;return d.innerHTML}
 
-  function loadHistory(){
-    try { return JSON.parse(localStorage.getItem(HISTORY_KEY)) || []; }
-    catch(e){ return []; }
-  }
-  function saveHistory(list){ localStorage.setItem(HISTORY_KEY, JSON.stringify(list)); }
-
-  function makeThumb(dataUrl, maxW, maxH){
-    return new Promise(function(resolve){
-      var img = new Image();
-      img.onload = function(){
-        var w = img.width, h = img.height;
-        var scale = Math.min(maxW/w, maxH/h, 1);
-        w = Math.round(w*scale); h = Math.round(h*scale);
-        var c = document.createElement('canvas');
-        c.width = w; c.height = h;
-        c.getContext('2d').drawImage(img, 0, 0, w, h);
-        resolve(c.toDataURL('image/jpeg', 0.6));
-      };
-      img.onerror = function(){ resolve(dataUrl); };
-      img.src = dataUrl;
-    });
-  }
-
-  window.addMattingHistory = async function(resultDataUrl, fileName){
-    var list = loadHistory();
-    var thumb = await makeThumb(resultDataUrl, 200, 200);
-    list.unshift({
-      id: Date.now(),
-      name: fileName || ('炼金成果_' + new Date().toLocaleString()),
-      time: new Date().toLocaleString('zh-CN'),
-      thumb: thumb,
-      result: resultDataUrl
-    });
-    if(list.length > MAX_ITEMS) list = list.slice(0, MAX_ITEMS);
-    saveHistory(list);
-    renderHistory();
+  window.addMattingHistory=async function(dataUrl){
+    var list=load();
+    var thumb=await makeThumb(dataUrl,200,200);
+    list.unshift({id:Date.now(),name:'result_'+new Date().toLocaleString(),time:new Date().toLocaleString('zh-CN'),thumb:thumb,result:dataUrl});
+    if(list.length>MAX)list=list.slice(0,MAX);
+    save(list);renderHistory();
   };
 
+  function makeThumb(dataUrl,mw,mh){return new Promise(function(res){
+    var img=new Image();img.onload=function(){
+      var w=img.width,h=img.height,sc=Math.min(mw/w,mh/h,1);
+      w=Math.round(w*sc);h=Math.round(h*sc);
+      var c=document.createElement('canvas');c.width=w;c.height=h;
+      c.getContext('2d').drawImage(img,0,0,w,h);
+      res(c.toDataURL('image/jpeg',0.6));
+    };img.onerror=function(){res(dataUrl)};img.src=dataUrl;
+  })}
+
   function renderHistory(){
-    var list = loadHistory();
-    var container = document.getElementById('historyList');
-    var emptyEl = document.getElementById('historyEmpty');
-    var oldItems = container.querySelectorAll('.history-item');
-    oldItems.forEach(function(el){ el.remove(); });
-    if(list.length === 0){
-      emptyEl.style.display = 'flex';
-    } else {
-      emptyEl.style.display = 'none';
-      list.forEach(function(item){
-        var el = document.createElement('div');
-        el.className = 'history-item';
-        el.innerHTML =
-          '<img class="history-thumb" src="' + item.thumb + '" alt="缩略图">' +
-          '<div class="history-info">' +
-            '<div class="history-name">' + escapeHtml(item.name) + '</div>' +
-            '<div class="history-time">' + escapeHtml(item.time) + '</div>' +
-          '</div>' +
-          '<div class="history-actions">' +
-            '<button class="history-act-btn download" title="下载"><i class="fas fa-download"></i></button>' +
-            '<button class="history-act-btn preview" title="预览"><i class="fas fa-eye"></i></button>' +
-            '<button class="history-act-btn del" title="删除"><i class="fas fa-trash"></i></button>' +
-          '</div>';
-        el.querySelector('.download').addEventListener('click', function(e){
-          e.stopPropagation();
-          downloadFromHistory(item);
-        });
-        el.querySelector('.preview').addEventListener('click', function(e){
-          e.stopPropagation();
-          previewFromHistory(item);
-        });
-        el.querySelector('.del').addEventListener('click', function(e){
-          e.stopPropagation();
-          deleteHistoryItem(item.id);
-        });
-        el.addEventListener('click', function(){ previewFromHistory(item); });
-        container.appendChild(el);
-      });
-    }
+    var list=load(),c=$('historyList'),e=$('historyEmpty');
+    c.querySelectorAll('.history-item').forEach(function(el){el.remove()});
+    if(list.length===0){e.style.display='flex'}else{e.style.display='none';list.forEach(function(item){
+      var el=document.createElement('div');el.className='history-item';
+      el.innerHTML='<img class="history-thumb" src="'+item.thumb+'"><div class="history-info"><div class="history-name">'+escapeHtml(item.name)+'</div><div class="history-time">'+escapeHtml(item.time)+'</div></div><div class="history-actions"><button class="history-act-btn dl" title="DL">⬇</button><button class="history-act-btn pv" title="VIEW">👁</button><button class="history-act-btn del" title="DEL">✕</button></div>';
+      el.querySelector('.dl').onclick=function(ev){ev.stopPropagation();var a=document.createElement('a');a.href=item.result;a.download=(item.name||'result')+'.png';document.body.appendChild(a);a.click();document.body.removeChild(a)};
+      el.querySelector('.pv').onclick=function(ev){ev.stopPropagation();$('resultImage').src=item.result;$('resultImage').style.display='block';$('previewSection').classList.add('active');$('downloadBtn').disabled=false;fetch(item.result).then(function(r){return r.blob()}).then(function(b){window._histBlob=b});closeHistory()};
+      el.querySelector('.del').onclick=function(ev){ev.stopPropagation();save(load().filter(function(x){return x.id!==item.id}));renderHistory()};
+      el.onclick=function(){$('resultImage').src=item.result;$('resultImage').style.display='block';$('previewSection').classList.add('active');$('downloadBtn').disabled=false;closeHistory()};
+      c.appendChild(el);
+    })}
   }
 
-  function downloadFromHistory(item){
-    var a = document.createElement('a');
-    a.href = item.result;
-    a.download = (item.name || '炼金成果') + '.png';
-    document.body.appendChild(a); a.click(); document.body.removeChild(a);
-  }
-
-  function previewFromHistory(item){
-    var resultImg = document.getElementById('resultImage');
-    var previewSec = document.getElementById('previewSection');
-    if(resultImg && previewSec){
-      resultImg.src = item.result;
-      resultImg.style.display = 'block';
-      previewSec.classList.add('active');
-      document.getElementById('downloadBtn').disabled = false;
-      fetch(item.result).then(function(r){ return r.blob(); }).then(function(b){
-        window._historyResultBlob = b;
-      });
-      window.scrollTo({top:0, behavior:'smooth'});
-    }
-    closeHistoryPanel();
-  }
-
-  window._historyResultBlob = null;
-
-  function deleteHistoryItem(id){
-    var list = loadHistory().filter(function(x){ return x.id !== id; });
-    saveHistory(list);
-    renderHistory();
-  }
-
-  function openHistoryPanel(){
-    document.getElementById('historyOverlay').classList.add('active');
-    document.getElementById('historyPanel').classList.add('active');
-    renderHistory();
-  }
-  function closeHistoryPanel(){
-    document.getElementById('historyOverlay').classList.remove('active');
-    document.getElementById('historyPanel').classList.remove('active');
-  }
-
-  document.getElementById('historyBtn').addEventListener('click', openHistoryPanel);
-  document.getElementById('historyClose').addEventListener('click', closeHistoryPanel);
-  document.getElementById('historyOverlay').addEventListener('click', closeHistoryPanel);
-  document.getElementById('historyClearBtn').addEventListener('click', function(){
-    if(confirm('确定清空所有炼金记录？')){ saveHistory([]); renderHistory(); }
-  });
-
-  function escapeHtml(str){
-    var div = document.createElement('div'); div.textContent = str; return div.innerHTML;
-  }
-
+  function openHistory(){$('historyOverlay').classList.add('active');$('historyPanel').classList.add('active');renderHistory()}
+  function closeHistory(){$('historyOverlay').classList.remove('active');$('historyPanel').classList.remove('active')}
+  $('historyBtn').onclick=openHistory;
+  $('historyClose').onclick=closeHistory;
+  $('historyOverlay').onclick=closeHistory;
+  $('historyClearBtn').onclick=function(){if(confirm('CLEAR ALL?')){save([]);renderHistory()}};
   renderHistory();
 })();
 
-// 下载按钮
-downloadBtn.addEventListener('click', function(){
-  if(!resultBlob){ showMsg('没有可保存的成果','error'); return; }
+// 下载
+downloadBtn.addEventListener('click',function(){
+  if(!resultBlob){showMsg('NO RESULT','error');return}
   var a=document.createElement('a');a.href=URL.createObjectURL(resultBlob);
-  a.download='炼金成果_'+Date.now()+'.png';document.body.appendChild(a);a.click();
-  document.body.removeChild(a);showMsg('成果已保存！','success');
+  a.download='matting_'+Date.now()+'.png';document.body.appendChild(a);a.click();
+  document.body.removeChild(a);showMsg('SAVED!','success');
 });
 
-// 重置按钮
-resetBtn.addEventListener('click', function(){
+// 重置
+resetBtn.addEventListener('click',function(){
   fileInput.value='';originalFile=null;resultBlob=null;
   originalImage.src='';resultImage.src='';resultImage.style.display='none';
   loadingEl.classList.remove('active');downloadBtn.disabled=true;
@@ -1117,16 +1043,17 @@ resetBtn.addEventListener('click', function(){
   window.scrollTo({top:0,behavior:'smooth'});
 });
 
-// 消息提示
+// 消息
 function showMsg(text,type){
-  var iconMap={success:'fa-check-circle',error:'fa-exclamation-circle',info:'fa-info-circle'};
-  messageEl.querySelector('i').className='fas '+iconMap[type||'info'];
-  messageEl.querySelector('span').textContent=text;
+  var iconMap={success:'✓',error:'✕',info:'ℹ'};
+  messageEl.querySelector('span').textContent=' '+text;
   messageEl.className='msg '+(type||'info')+' active';
-  setTimeout(function(){ messageEl.classList.remove('active'); }, 5500);
+  messageEl.querySelector('span').innerHTML=
+    '<span style="margin-right:6px">'+(iconMap[type]||'ℹ')+'</span>'+text;
+  setTimeout(function(){messageEl.classList.remove('active')},5500);
 }
 
-console.log('🏠 抠图工坊 - 像素酒馆风格已加载');
+console.log('%c🎮 抠图工坊 - 16-bit PIXEL STYLE','color:#5c94fc;font-size:14px;font-weight:bold');
 })();
 </script>
 </body>
