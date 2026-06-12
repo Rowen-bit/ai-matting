@@ -162,12 +162,13 @@ body{
 
 /* 招牌标题图片 */
 .signboard-title{
-  max-width:320px;
+  width:100%;
+  max-width:480px;
   height:auto;
   display:block;
   position:relative;
   z-index:2;
-  filter:drop-shadow(0 6px 12px rgba(0,0,0,0.7)) drop-shadow(0 2px 4px rgba(0,0,0,0.5)) drop-shadow(0 0 3px rgba(212,168,75,0.2));
+  filter:drop-shadow(0 8px 16px rgba(0,0,0,0.7)) drop-shadow(0 4px 8px rgba(0,0,0,0.5)) drop-shadow(0 0 6px rgba(212,168,75,0.25));
 }
 
 /* ===== 历史记录按钮（小木牌） ===== */
@@ -742,7 +743,7 @@ body{
 /* ===== 响应式 ===== */
 @media(max-width:520px){
   .signboard h1{font-size:1.3rem;letter-spacing:4px}
-  .signboard-title{max-width:240px}
+  .signboard-title{max-width:360px}
   .signboard{padding:0.8rem 1.5rem}
   .wooden-plank{padding:1rem}
   .upload-area{padding:1.5rem 0.5rem}
@@ -767,12 +768,7 @@ body{
 
   <!-- 悬挂式木质招牌 -->
   <div class="signboard-container">
-    <div class="signboard">
-      <div class="signboard-border"></div>
-      <div class="vine-left"></div>
-      <div class="vine-right"></div>
-      <img src="biaoti.png" alt="抠图工坊" class="signboard-title">
-    </div>
+    <img src="biaoti.png" alt="抠图工坊" class="signboard-title">
   </div>
 
   <!-- 上传面板 -->
