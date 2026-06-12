@@ -216,6 +216,8 @@ body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI','Microsoft YaHei',s
 (function(){
 'use strict';
 
+console.log('=== AI Matting Script Starting ===');
+
 // ============ Config ============
 const HF_API  = 'https://api-inference.huggingface.co';
 const DINO    = 'IDEA-Research/grounding-dino-base';
@@ -299,6 +301,11 @@ uploadArea.addEventListener('drop', function(e){
 });
 
 console.log('Upload events bound successfully');
+
+// Test click immediately
+setTimeout(function(){
+    console.log('Test: uploadArea element exists?', !!document.getElementById('uploadArea'));
+}, 1000);
 
 function handleFile(file){
     if(!file.type.match(/^image/(jpeg|png|webp)$/)){
